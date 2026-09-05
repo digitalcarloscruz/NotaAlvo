@@ -15,10 +15,10 @@ export function calculateGamification(state: RotaState, physicalResultCount = 0,
   const missions: Mission[] = [
     { code: "steady_sessions", title: "Constância antes de intensidade", description: `Conclua ${sessionTarget} sessões planejadas, sem aumentar sua carga.`, progress: Math.min(completedPlan, sessionTarget), target: sessionTarget, completed: completedPlan >= sessionTarget, xp: 30 },
     { code: "evidence_week", title: "Aprender com evidências", description: "Responda 10 questões ao longo da semana.", progress: Math.min(recentAnswers, 10), target: 10, completed: recentAnswers >= 10, xp: 25 },
-    { code: "weekly_close", title: "Fechar para recalibrar", description: "Faça um fechamento semanal da sua rota.", progress: weeklyClosed ? 1 : 0, target: 1, completed: weeklyClosed, xp: 35 },
+    { code: "weekly_close", title: "Fechar para recalibrar", description: "Faça um fechamento semanal da seu plano.", progress: weeklyClosed ? 1 : 0, target: 1, completed: weeklyClosed, xp: 35 },
   ];
   const definitions: Array<Omit<Achievement, "earned"> & { earned: boolean }> = [
-    { code: "route_created", title: "Rota criada", description: "Concluiu o onboarding adaptativo.", icon: "◇", earned: state.profile.onboardingCompleted },
+    { code: "route_created", title: "Plano criado", description: "Concluiu o onboarding adaptativo.", icon: "◇", earned: state.profile.onboardingCompleted },
     { code: "first_session", title: "Primeiro passo", description: "Concluiu a primeira sessão planejada.", icon: "✓", earned: state.stats.completedSessions >= 1 },
     { code: "diagnostic_complete", title: "Ponto de partida", description: "Concluiu o diagnóstico inicial.", icon: "◎", earned: Boolean(state.diagnostic.completedAt) },
     { code: "streak_3", title: "Ritmo sustentável", description: "Estudou em três dias consecutivos.", icon: "↗", earned: state.stats.streak >= 3 },

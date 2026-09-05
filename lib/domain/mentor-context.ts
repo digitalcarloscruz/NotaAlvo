@@ -60,7 +60,7 @@ export function deterministicMentorAnswer(state: RotaState, question: string): M
   return {
     answer: asksAboutReview && pending
       ? `Você tem ${pending} revisão(ões) pendente(s). Comece pela mais antiga e depois retome ${view.nextAction.subject}: ${view.nextAction.topic}.`
-      : `Sua próxima ação recomendada é ${view.nextAction.subject}: ${view.nextAction.topic}, por ${view.nextAction.minutes} minutos. Ela está no topo porque combina prioridade ${view.nextAction.priority}/100 com as evidências atuais da sua rota.`,
+      : `Sua próxima ação recomendada é ${view.nextAction.subject}: ${view.nextAction.topic}, por ${view.nextAction.minutes} minutos. Ela está no topo porque combina prioridade ${view.nextAction.priority}/100 com as evidências atuais da seu plano.`,
     actions: [{ title: asksAboutReview ? "Abrir revisões" : "Abrir meu plano", reason: "Executar a próxima ação já priorizada pelo motor adaptativo.", path: asksAboutReview ? "/app/revisoes" : "/app/plano" }],
     citations: [{ sourceId: asksAboutReview ? "review-current" : "plan-current", claim: "Recomendação calculada a partir do estado atual do candidato." }],
     confidence: state.answers.length >= 10 ? "high" : state.answers.length >= 3 ? "medium" : "low",

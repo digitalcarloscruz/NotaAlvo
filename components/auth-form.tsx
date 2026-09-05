@@ -74,7 +74,7 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
         <Brand />
         <div className="auth-copy">
           <p className="eyebrow">SUA JORNADA CONTINUA</p>
-          <h1>{mode === "login" ? "Entre na sua Rota" : "Crie sua Rota"}</h1>
+          <h1>{mode === "login" ? "Entre na Nota Alvo" : "Crie sua conta na Nota Alvo"}</h1>
           <p>{mode === "login" ? "Seu plano, evolução e revisões ficam sincronizados." : "Comece pelo diagnóstico e receba um plano adaptado à sua rotina."}</p>
         </div>
         <div className="auth-tabs" role="tablist" aria-label="Acesso à conta">
@@ -98,7 +98,7 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
         <div className="auth-demo"><span>Quer conhecer antes?</span><Link href="/app">Explorar modo demonstração</Link></div>
       </section>
       <aside className="auth-benefits">
-        <p className="eyebrow">UMA CONTA, UMA ROTA VIVA</p>
+        <p className="eyebrow">UMA CONTA, UM PLANO QUE EVOLUI</p>
         <h2>Seu estudo acompanha você.</h2>
         <ul><li>Plano recalculado após cada evidência</li><li>Progresso sincronizado entre dispositivos</li><li>Revisões e pontos fracos sempre disponíveis</li><li>Dados protegidos por políticas individuais</li></ul>
       </aside>

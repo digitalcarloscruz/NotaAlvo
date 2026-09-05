@@ -274,7 +274,7 @@ export function completeOnboarding(
   state.stats.level = Math.floor(state.stats.xp / 150) + 1;
   return recalculatePlan(
     state,
-    "Rota inicial criada com objetivo, disponibilidade e autoavaliação.",
+    "Plano inicial criado com objetivo, disponibilidade e autoavaliação.",
     now,
   );
 }

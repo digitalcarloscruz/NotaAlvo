@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#132b22">
   <meta name="description" content="Envie um edital e transforme suas regras, disciplinas e etapas em uma estrutura revisável.">
-  <title>Analisar edital — Rota</title>
+  <title>Analisar edital — Nota Alvo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
@@ -14,14 +14,14 @@
 </head>
 <body class="edital-body">
   <header class="edital-nav">
-    <a class="brand" href="/"><span class="brand-mark"><svg viewBox="0 0 32 32"><path d="M7 23.8 10.4 9l5.7 8.1L21.5 5l3.6 18.8-9-3.1z"/><circle cx="16" cy="16" r="2.7"/></svg></span><span>Rota</span></a>
+    <a class="brand" href="/"><span class="brand-mark"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="6"/><circle cx="16" cy="16" r="2"/><path d="M19 13 29 3M23 3h6v6"/></svg></span><span>Nota Alvo</span></a>
     <a href="/">Voltar para o início</a>
   </header>
 
   <main class="edital-main">
     <section class="edital-intro">
       <p class="eyebrow">EDITAL ENGINE</p>
-      <h1>Seu edital deixa de ser um PDF.<br><em>Vira uma rota.</em></h1>
+      <h1>Seu edital deixa de ser um PDF.<br><em>Vira um plano.</em></h1>
       <p>Identificamos concurso, banca, datas, disciplinas, tópicos, critérios, etapas e TAF. Você revisa os dados antes que eles influenciem seu plano.</p>
       <div class="privacy-note"><span>✓</span><p><b>Arquivo privado</b><small>PDF protegido, limite de 10 MB e nenhuma publicação automática.</small></p></div>
     </section>
@@ -57,12 +57,12 @@
       <div id="errorState" class="state-panel" hidden><span class="error-mark">!</span><h2>Não foi possível concluir</h2><p id="errorMessage"></p><button id="retryButton" class="edital-primary" type="button">Tentar novamente</button></div>
 
       <div id="resultState" hidden>
-        <div class="result-head"><div><span class="step-label">ANÁLISE PRELIMINAR</span><h2 id="resultTitle">Edital analisado</h2><p>Revise as informações antes de criar ou recalcular uma rota.</p></div><span class="review-chip" id="reviewStatusChip">Revisão necessária</span></div>
+        <div class="result-head"><div><span class="step-label">ANÁLISE PRELIMINAR</span><h2 id="resultTitle">Edital analisado</h2><p>Revise as informações antes de criar ou recalcular um plano.</p></div><span class="review-chip" id="reviewStatusChip">Revisão necessária</span></div>
         <div class="result-metrics" id="resultMetrics"></div>
         <section class="result-section"><h3>Disciplinas e tópicos</h3><div id="subjectResults" class="subject-results"></div></section>
         <section class="result-section"><h3>Etapas detectadas</h3><div id="stageResults" class="stage-results"></div></section>
         <div class="review-alert" id="reviewAlerts" hidden></div>
-        <div class="result-actions"><button id="newAnalysisButton" class="quiet-button" type="button">Analisar outro</button><button class="edital-primary" type="button" disabled title="Disponível após revisão administrativa">Criar minha Rota</button></div>
+        <div class="result-actions"><button id="newAnalysisButton" class="quiet-button" type="button">Analisar outro</button><button class="edital-primary" type="button" disabled title="Disponível após revisão administrativa">Criar meu plano</button></div>
       </div>
     </section>
   </main>

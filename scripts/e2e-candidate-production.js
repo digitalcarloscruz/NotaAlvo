@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 
-const appUrl = process.env.E2E_APP_URL || 'https://rota-pmmg.vercel.app';
+const appUrl = process.env.E2E_APP_URL || 'https://notaalvo.com.br';
 const supabaseUrl = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.SUPABASE_ANON_KEY;

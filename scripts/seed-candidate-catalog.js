@@ -60,7 +60,7 @@ async function reviewerId() {
   if (existing) return existing.id;
   const created = await request('/auth/v1/admin/users', {
     method: 'POST', body: JSON.stringify({ email, password: crypto.randomBytes(32).toString('hex'), email_confirm: true,
-      user_metadata: { full_name: 'Revisão editorial Rota PMMG', system_account: true } })
+      user_metadata: { full_name: 'Revisão editorial Nota Alvo PMMG', system_account: true } })
   });
   await upsert('user_roles', { user_id: created.id, role: 'content_reviewer' }, 'user_id,role');
   return created.id;
@@ -72,8 +72,8 @@ async function main() {
   const position = await firstOrInsert('positions', `organization_id=eq.${organization.id}&slug=eq.carreiras-pmmg`,
     { organization_id: organization.id, name: 'Carreiras PMMG', slug: 'carreiras-pmmg', career_area: 'Segurança Pública', education_level: 'Variável' });
   const exam = await firstOrInsert('exams', 'slug=eq.rota-pmmg-autoral-2026', { institution: 'PMMG', state: 'MG', role: 'Material autoral preparatório', exam_year: 2026,
-    organizer: 'Rota PMMG', source_url: 'https://rota-pmmg.vercel.app', authorization_reference: 'Conteúdo autoral Rota PMMG',
-    status: 'published', slug: 'rota-pmmg-autoral-2026', title: 'Questões autorais Rota PMMG', organization_id: organization.id,
+    organizer: 'Nota Alvo PMMG', source_url: 'https://notaalvo.com.br', authorization_reference: 'Conteúdo autoral Nota Alvo PMMG',
+    status: 'published', slug: 'rota-pmmg-autoral-2026', title: 'Questões autorais Nota Alvo PMMG', organization_id: organization.id,
     position_id: position.id, has_physical_test: true, metadata: { official: false, purpose: 'diagnostic_seed' } });
 
   for (const [axisSlug, subjectCode, subjectName, topicCode, topicName, difficulty, statement, options, correct, explanation] of catalog) {
@@ -82,7 +82,7 @@ async function main() {
     const topic = await upsert('topics', { subject_id: subject.id, stable_code: topicCode, name: topicName,
       slug: topicName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') }, 'stable_code');
     await upsert('exam_subjects', { exam_id: exam.id, subject_id: subject.id, display_name: subjectName }, 'exam_id,subject_id');
-    await upsert('exam_topics', { exam_id: exam.id, topic_id: topic.id, source_reference: 'Conteúdo autoral Rota PMMG', required: true }, 'exam_id,topic_id');
+    await upsert('exam_topics', { exam_id: exam.id, topic_id: topic.id, source_reference: 'Conteúdo autoral Nota Alvo PMMG', required: true }, 'exam_id,topic_id');
     const contentHash = crypto.createHash('sha256').update(statement).digest('hex');
     const question = await upsert('questions', { exam_id: exam.id, axis_id: axis.id, subject: subjectName, topic: topicName,
       statement, options, correct_option: correct, explanation, difficulty, content_hash: contentHash, status: 'published',
@@ -93,8 +93,8 @@ async function main() {
     }
     await upsert('question_topics', { question_id: question.id, topic_id: topic.id, relevance: 1, is_primary: true,
       classification_method: 'manual', classified_by: reviewer }, 'question_id,topic_id');
-    await upsert('question_sources', { question_id: question.id, source_type: 'manually_created', source_name: 'Rota PMMG — conteúdo autoral',
-      source_url: 'https://rota-pmmg.vercel.app', authorization_reference: 'Produção editorial própria', official: false }, 'question_id,source_type,source_name');
+    await upsert('question_sources', { question_id: question.id, source_type: 'manually_created', source_name: 'Nota Alvo PMMG — conteúdo autoral',
+      source_url: 'https://notaalvo.com.br', authorization_reference: 'Produção editorial própria', official: false }, 'question_id,source_type,source_name');
   }
   process.stdout.write(`Catálogo candidato preparado: ${catalog.length} questões autorais validadas.\n`);
 }

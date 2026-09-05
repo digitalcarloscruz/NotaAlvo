@@ -17,7 +17,7 @@ async function main() {
     assert.equal(created.status, 200);
     userId = (await created.json()).id;
     const generated = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, { method: 'POST', headers,
-      body: JSON.stringify({ type: 'magiclink', email, options: { redirectTo: 'https://rota-pmmg.vercel.app/' } }) });
+      body: JSON.stringify({ type: 'magiclink', email, options: { redirectTo: 'https://notaalvo.com.br/' } }) });
     assert.equal(generated.status, 200);
     const payload = await generated.json();
     assert.ok(payload.action_link);
@@ -26,9 +26,9 @@ async function main() {
     const location = verified.headers.get('location');
     const redirect = new URL(location);
     process.stdout.write(`Redirecionamento observado: ${redirect.origin}${redirect.pathname} (${verified.status}).\n`);
-    assert.equal(redirect.origin, 'https://rota-pmmg.vercel.app');
+    assert.equal(redirect.origin, 'https://notaalvo.com.br');
     assert.equal(location.includes('error=access_denied'), false);
-    process.stdout.write('Link mágico aprovado: token válido e redirecionamento para rota-pmmg.vercel.app.\n');
+    process.stdout.write('Link mágico aprovado: token válido e redirecionamento para notaalvo.com.br.\n');
   } finally {
     if (userId) await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}`, { method: 'DELETE', headers });
   }

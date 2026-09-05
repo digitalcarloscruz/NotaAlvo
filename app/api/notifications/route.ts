@@ -18,7 +18,7 @@ export async function GET() {
   const state = snapshot?.state as RotaState | undefined;
   const alerts: Array<{ id: string; level: "info" | "attention"; title: string; message: string; href: string }> = [];
   if (dueReviews) alerts.push({ id: "reviews-due", level: "attention", title: `${dueReviews} revisão${dueReviews > 1 ? "ões" : ""} disponível${dueReviews > 1 ? "is" : ""}`, message: "Reforce agora os conteúdos que você errou.", href: "/app/revisoes" });
-  if (state?.profile.onboardingCompleted && state.diagnostic.active) alerts.push({ id: "diagnostic-open", level: "attention", title: "Diagnóstico em andamento", message: `Faltam ${Math.max(0, state.diagnostic.target - state.diagnostic.answered)} questões para calibrar sua rota.`, href: "/app/questoes" });
+  if (state?.profile.onboardingCompleted && state.diagnostic.active) alerts.push({ id: "diagnostic-open", level: "attention", title: "Diagnóstico em andamento", message: `Faltam ${Math.max(0, state.diagnostic.target - state.diagnostic.answered)} questões para calibrar seu plano.`, href: "/app/questoes" });
   const planned = state?.plan.filter((task) => task.status === "planned" && task.scheduledFor <= now.slice(0, 10)).length ?? 0;
   if (planned) alerts.push({ id: "tasks-due", level: "info", title: `${planned} atividade${planned > 1 ? "s" : ""} no plano`, message: "Mantenha a consistência da semana.", href: "/app/plano" });
   if (track?.exam_date) {

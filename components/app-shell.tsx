@@ -13,7 +13,7 @@ const navigation = [
   ["/app", "⌂", "Início"],
   ["/app/plano", "▤", "Meu plano"],
   ["/app/desempenho", "⌁", "Desempenho"],
-  ["/app/radar", "⌖", "Rota Score"],
+  ["/app/radar", "⌖", "Nota Alvo Score"],
   ["/app/oportunidades", "◎", "Oportunidades"],
   ["/app/mentor", "✦", "Mentor IA"],
   ["/app/redacoes", "✎", "Redações"],
@@ -69,7 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
       <main className="next-app-main">
-        <header className="topbar"><button className="menu-button" type="button" onClick={() => setMenuOpen((value) => !value)} aria-label="Abrir menu">☰</button><div className="mobile-brand"><b>Rota</b></div><div className="top-actions"><span className={`sync-chip ${syncStatus}`}><i />{syncLabel}</span><span className="pilot-chip"><i />Piloto ENEM</span><NotificationCenter enabled={Boolean(user)} /></div></header>
+        <header className="topbar"><button className="menu-button" type="button" onClick={() => setMenuOpen((value) => !value)} aria-label="Abrir menu">☰</button><div className="mobile-brand"><b>Nota Alvo</b></div><div className="top-actions"><span className={`sync-chip ${syncStatus}`}><i />{syncLabel}</span><span className="pilot-chip"><i />Piloto ENEM</span><NotificationCenter enabled={Boolean(user)} /></div></header>
         {children}
       </main>
     </div>

@@ -17,15 +17,15 @@ export default function LandingPage() {
       <main className="landing-main">
         <section className="hero hero-clean">
           <div className="hero-copy">
-            <span className="hero-badge">SEU SISTEMA OPERACIONAL DE APROVAÇÃO</span>
+            <span className="hero-badge">SEU PRÓXIMO ACERTO COMEÇA AQUI</span>
             <h1>Saiba o que estudar.<br /><em>Agora.</em></h1>
-            <p>Escolha seu concurso ou envie o edital. A Rota mede seu nível, organiza sua semana e recalcula o caminho conforme você evolui.</p>
+            <p>Escolha seu concurso ou envie o edital. A Nota Alvo mede seu nível, organiza sua semana e recalcula o caminho conforme você evolui.</p>
             <div className="hero-facts">
               <span><b>1.288</b> questões PMMG catalogadas</span>
               <span><b>32</b> provas históricas</span>
-              <span><b>1 rota</b> que aprende com você</span>
+              <span><b>1 plano</b> que aprende com você</span>
             </div>
-            <Link className="discover-button" href="/entrar?mode=signup&next=/app?onboarding=1">Descobrir minha rota <span>→</span></Link>
+            <Link className="discover-button" href="/entrar?mode=signup&next=/app?onboarding=1">Descobrir meu plano <span>→</span></Link>
           </div>
           <div className="access-card">
             <span className="access-kicker">ÁREA DO CANDIDATO</span>
@@ -47,7 +47,7 @@ export default function LandingPage() {
         </section>
 
         <section className="landing-section" id="como-funciona">
-          <p className="eyebrow">SUA ROTA PERSONALIZADA</p>
+          <p className="eyebrow">SEU PLANO PERSONALIZADO</p>
           <h2>Não é só estudar mais.<br />É saber o que estudar agora.</h2>
           <div className="benefit-grid">
             <article><span>01</span><i>⌖</i><h3>Diagnóstico rápido</h3><p>Estimamos domínio e confiança sem depender de questões aleatórias.</p></article>
@@ -60,7 +60,7 @@ export default function LandingPage() {
           <div><p className="eyebrow">CONHECIMENTO QUE VIAJA COM VOCÊ</p><h2>Seu domínio pertence a você.</h2><p>O que você aprende em um concurso é reaproveitado em todos os editais que cobram os mesmos tópicos.</p></div>
           <div className="career-cards">
             <article><span>CALENDÁRIO CONFIRMADO</span><h3>ENEM 2026</h3><p>8 e 15 de novembro • quatro áreas e redação</p><b>Trilha disponível →</b></article>
-            <article><span>VERTICAL DISPONÍVEL</span><h3>PMMG</h3><p>CFSD e CFO • acervo histórico catalogado</p><b>Explorar rota →</b></article>
+            <article><span>VERTICAL DISPONÍVEL</span><h3>PMMG</h3><p>CFSD e CFO • acervo histórico catalogado</p><b>Explorar plano →</b></article>
             <article><span>ARQUITETURA NACIONAL</span><h3>Policiais</h3><p>PF, PRF, polícias civis e militares</p><b>Em preparação</b></article>
             <article><span>ARQUITETURA NACIONAL</span><h3>Fiscal e tribunais</h3><p>Conteúdo compartilhado e metas específicas</p><b>Em preparação</b></article>
           </div>
@@ -68,11 +68,11 @@ export default function LandingPage() {
 
         <section className="pricing" id="planos">
           <p className="eyebrow">COMECE AGORA</p>
-          <h2>Valide sua primeira rota.</h2>
-          <div className="price-card"><div><span>ROTA ESSENCIAL</span><h3>Diagnóstico gratuito</h3><p>Onboarding, plano adaptativo, questões, revisão e Rota Score.</p></div><Link className="hero-cta" href="/entrar?mode=signup&next=/app?onboarding=1">Criar minha rota →</Link></div>
+          <h2>Valide seu primeiro plano.</h2>
+          <div className="price-card"><div><span>NOTA ALVO ESSENCIAL</span><h3>Diagnóstico gratuito</h3><p>Onboarding, plano adaptativo, questões, revisão e Nota Alvo Score.</p></div><Link className="hero-cta" href="/entrar?mode=signup&next=/app?onboarding=1">Criar meu plano →</Link></div>
         </section>
       </main>
-      <footer className="landing-footer"><span>Rota — preparação adaptativa para concursos.</span><span>Conteúdo identificado • Seus dados protegidos</span></footer>
+      <footer className="landing-footer"><span>Nota Alvo — preparação adaptativa para ENEM e concursos.</span><span>Conteúdo identificado • Seus dados protegidos</span></footer>
     </div>
   );
 }

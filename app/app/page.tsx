@@ -50,7 +50,7 @@ function DashboardContent() {
       <PilotEnrollment code={pilotCode} onJoined={() => setPilotAccepted(true)} />
       <section className="welcome-row">
         <div><p className="eyebrow">{new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date()).toUpperCase()}</p><h1>Olá, {state.profile.name} <span>👋</span></h1><p className="subtitle">{view.modeLabel} • {state.profile.careerLabel}</p></div>
-        <button className="outline-button" type="button" onClick={() => setOnboardingOpen(true)}>⚙ Ajustar minha rota</button>
+        <button className="outline-button" type="button" onClick={() => setOnboardingOpen(true)}>⚙ Ajustar meu plano</button>
       </section>
 
       {isEnem && <section className="enem-countdown"><div><span>ENEM 2026 • CALENDÁRIO OFICIAL</span><h2>{enemDays} dias para o primeiro dia</h2><p>8 de novembro: Linguagens, Ciências Humanas e Redação • 15 de novembro: Ciências da Natureza e Matemática.</p><p><b>Meta atual:</b> {state.profile.targetCourse || enemFocusLabel(state.profile.enemFocusArea)}{state.profile.targetInstitution ? ` • ${state.profile.targetInstitution}` : ""}</p></div><div><b>8</b><small>NOV</small><i /><b>15</b><small>NOV</small></div><a href="https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/orientacoes/cronograma" target="_blank" rel="noreferrer">Ver cronograma do Inep ↗</a></section>}
@@ -61,13 +61,13 @@ function DashboardContent() {
       </section>
 
       <section className="metrics-grid">
-        <article className="metric-card"><div className="metric-icon green">✓</div><div><span>Sessões concluídas</span><strong>{state.stats.completedSessions} <small>/ {state.stats.plannedSessions}</small></strong><p>Atualizado pela sua rota</p></div></article>
+        <article className="metric-card"><div className="metric-icon green">✓</div><div><span>Sessões concluídas</span><strong>{state.stats.completedSessions} <small>/ {state.stats.plannedSessions}</small></strong><p>Atualizado pela seu plano</p></div></article>
         <article className="metric-card"><div className="metric-icon amber">◎</div><div><span>Tempo de estudo</span><strong>{minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}min` : `${minutes} min`}</strong><p>Meta: {state.profile.weeklyHours}h semanais</p></div></article>
         <article className="metric-card"><div className="metric-icon blue">↗</div><div><span>Taxa observada</span><strong>{view.accuracy === null ? "Sem dados" : `${view.accuracy}%`}</strong><p>{view.totalAnswers} respostas válidas</p></div></article>
         <article className="metric-card"><div className="metric-icon purple">◈</div><div><span>Nível e sequência</span><strong>Nível {state.stats.level}</strong><p>{state.stats.streak} dias • {state.stats.xp} XP</p></div></article>
       </section>
 
-      <section className="weekly-loop" id="weekly-checkin"><div><span className="weekly-kicker">DESAFIO DA SEMANA</span><h3>{state.diagnostic.active ? "Calibre sua rota em 10 questões" : "Feche a semana e recalibre"}</h3><p>{state.diagnostic.active ? "Cada resposta recalcula domínio, confiança e prioridade." : `Diagnóstico concluído. ${state.reviewQueue.length} item(ns) aguardam revisão.`}</p></div><div className="weekly-progress"><b>{state.diagnostic.answered}/{state.diagnostic.target}</b><i><span style={{ width: `${Math.min(100, (state.diagnostic.answered / state.diagnostic.target) * 100)}%` }} /></i>{state.diagnostic.active ? <button className="outline-button" type="button" onClick={() => router.push("/app/questoes")}>Continuar diagnóstico</button> : <button className="outline-button" type="button" onClick={() => { setCheckinHours(state.profile.weeklyHours); setCheckinOpen((value) => !value); }}>Fazer fechamento semanal</button>}</div></section>
+      <section className="weekly-loop" id="weekly-checkin"><div><span className="weekly-kicker">DESAFIO DA SEMANA</span><h3>{state.diagnostic.active ? "Calibre seu plano em 10 questões" : "Feche a semana e recalibre"}</h3><p>{state.diagnostic.active ? "Cada resposta recalcula domínio, confiança e prioridade." : `Diagnóstico concluído. ${state.reviewQueue.length} item(ns) aguardam revisão.`}</p></div><div className="weekly-progress"><b>{state.diagnostic.answered}/{state.diagnostic.target}</b><i><span style={{ width: `${Math.min(100, (state.diagnostic.answered / state.diagnostic.target) * 100)}%` }} /></i>{state.diagnostic.active ? <button className="outline-button" type="button" onClick={() => router.push("/app/questoes")}>Continuar diagnóstico</button> : <button className="outline-button" type="button" onClick={() => { setCheckinHours(state.profile.weeklyHours); setCheckinOpen((value) => !value); }}>Fazer fechamento semanal</button>}</div></section>
       {checkinOpen && <section className="surface weekly-checkin-form"><div><p className="eyebrow">FECHAMENTO SEMANAL</p><h3>Como foi o ritmo desta semana?</h3><p>Use sua percepção junto com as evidências observadas para ajustar a próxima carga.</p></div><label>Ritmo percebido<select value={checkinPace} onChange={(event) => setCheckinPace(event.target.value as typeof checkinPace)}><option value="light">Leve — posso avançar mais</option><option value="balanced">Adequado — manter o ritmo</option><option value="heavy">Pesado — preciso reduzir</option></select></label><label>Horas disponíveis na próxima semana<input type="range" min="2" max="30" value={checkinHours} onChange={(event) => setCheckinHours(Number(event.target.value))} /><output>{checkinHours} horas</output></label><button className="primary-button" type="button" onClick={finishCheckin}>Confirmar e criar próxima semana →</button></section>}
 
       <GamificationPanel />
@@ -84,7 +84,7 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<div className="next-content"><div className="surface empty-state">Preparando sua rota…</div></div>}>
+    <Suspense fallback={<div className="next-content"><div className="surface empty-state">Preparando seu plano…</div></div>}>
       <DashboardContent />
     </Suspense>
   );

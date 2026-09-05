@@ -1,8 +1,10 @@
 project_id = "pmmg"
 
 [auth]
-site_url = "https://rota-pmmg.vercel.app"
+site_url = "https://notaalvo.com.br"
 additional_redirect_urls = [
+  "https://notaalvo.com.br/**",
+  "https://www.notaalvo.com.br/**",
   "https://rota-pmmg.vercel.app/**",
   "https://pmmg-livid.vercel.app/**",
   "https://pmmg-ti-semeando-vidas.vercel.app/**",

@@ -3,7 +3,7 @@ import { authCallbackUrl, safeAuthNext } from "@/lib/auth/redirect";
 
 describe("auth redirect", () => {
   it("preserves the onboarding query as one callback parameter", () => {
-    const callback = new URL(authCallbackUrl("https://rota-pmmg.vercel.app"));
+    const callback = new URL(authCallbackUrl("https://notaalvo.com.br"));
     expect(callback.pathname).toBe("/auth/callback");
     expect(callback.searchParams.get("next")).toBe("/app?onboarding=1");
   });

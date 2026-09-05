@@ -1,4 +1,4 @@
-# Rota
+# Nota Alvo
 
 Plataforma adaptativa de preparação para concursos públicos. A PMMG permanece como primeira vertical e acervo inicial, enquanto o núcleo do produto é nacional e multi-concurso.
 
@@ -56,7 +56,7 @@ npm run build
 - domínio e confiança separados;
 - prioridade explicável e próxima melhor ação;
 - plano semanal recalculável;
-- Rota Score;
+- Nota Alvo Score;
 - Caderno de Erros e revisão;
 - XP, nível e sequência;
 - rotas reais para plano, desempenho, Radar, oportunidades, Mentor IA, questões, simulados, TAF, editais e ajuda.
@@ -126,3 +126,7 @@ O endpoint `/api/health` informa se o runtime Next.js está saudável e se o ban
 ## Deploy
 
 O `vercel.json` identifica o projeto como Next.js. Configure as mesmas variáveis em Production, Preview e Development antes de publicar.
+
+O domínio público é `https://notaalvo.com.br` e a área do candidato fica em `https://notaalvo.com.br/app`. No Supabase hospedado, configure **Site URL** como `https://notaalvo.com.br` e inclua `https://notaalvo.com.br/**` e `https://www.notaalvo.com.br/**` nas **Redirect URLs**. A configuração local está em `supabase/config.toml`; editar esse arquivo não altera automaticamente o serviço hospedado.
+
+Identificadores internos legados (`rota_score`, chaves de cache e IDs de catálogo) são preservados para manter a compatibilidade dos dados existentes.

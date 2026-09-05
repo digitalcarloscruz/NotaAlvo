@@ -199,7 +199,7 @@ export function RotaProvider({ children }: { children: ReactNode }) {
     if (user) trackPilotEvent("weekly_checkin_completed", `checkin:${new Date().toISOString().slice(0, 10)}`, {});
   }, [user]);
 
-  const recalculate = useCallback((reason = "Rota recalculada manualmente.") => {
+  const recalculate = useCallback((reason = "Plano recalculado manualmente.") => {
     setState((current) => recalculatePlan(current, reason));
   }, []);
 

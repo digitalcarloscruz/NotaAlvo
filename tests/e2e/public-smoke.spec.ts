@@ -11,7 +11,7 @@ test("landing and health endpoint are available", async ({ page, request }) => {
 
 test("signup form becomes available after auth initialization", async ({ page }) => {
   await page.goto("/entrar?mode=signup");
-  await expect(page.getByRole("heading", { name: "Crie sua Rota" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Crie sua conta na Nota Alvo" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Criar minha conta →" })).toBeEnabled();
 });
 

@@ -59,7 +59,7 @@ const statusCopy = {
   queued: ['Análise na fila', 'O documento foi aceito e aguarda processamento.', 1],
   extracting: ['Lendo o documento', 'Extraindo texto e elementos visuais do PDF.', 1],
   processing: ['Estruturando o edital', 'Identificando regras, disciplinas, tópicos e etapas.', 2],
-  normalizing: ['Normalizando tópicos', 'Relacionando o conteúdo com a taxonomia da Rota.', 3]
+  normalizing: ['Normalizando tópicos', 'Relacionando o conteúdo com a taxonomia da Nota Alvo.', 3]
 };
 
 function updateProcessing(status) {
@@ -140,7 +140,7 @@ async function start() {
 
 byId('loginState').addEventListener('submit', async event => {
   event.preventDefault(); byId('loginFeedback').textContent = 'Enviando…';
-  const { error } = await client.auth.signInWithOtp({ email: byId('loginEmail').value, options: { emailRedirectTo: 'https://rota-pmmg.vercel.app/analisar-edital' } });
+  const { error } = await client.auth.signInWithOtp({ email: byId('loginEmail').value, options: { emailRedirectTo: 'https://notaalvo.com.br/analisar-edital' } });
   byId('loginFeedback').textContent = error ? error.message : 'Confira sua caixa de entrada para acessar.';
 });
 byId('signOutButton').addEventListener('click', async () => { await client.auth.signOut(); session = null; show('loginState'); });

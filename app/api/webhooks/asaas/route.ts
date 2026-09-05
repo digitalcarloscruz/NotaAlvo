@@ -16,7 +16,9 @@ export async function POST(request: Request) {
   const { error } = await admin.from("asaas_webhook_events").upsert({
     event_id: event.data.id,
     event_type: event.data.event,
-    checkout_id: event.data.checkout?.id ?? null,
+    checkout_id: event.data.checkout?.id ?? event.data.payment?.checkoutSession ?? null,
+    payment_id: event.data.payment?.id ?? null,
+    order_reference: event.data.payment?.externalReference ?? null,
     checkout_status: event.data.checkout?.status ?? null,
   }, { onConflict: "event_id", ignoreDuplicates: true });
   if (error) return NextResponse.json({ error: "Falha ao registrar evento." }, { status: 500 });

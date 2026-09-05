@@ -39,9 +39,9 @@ export async function createAsaasCheckout(input: z.infer<typeof checkoutInput>) 
     }),
   });
   if (!response.ok) throw new Error(`Asaas checkout failed (${response.status})`);
-  const result = z.object({ id: z.string().min(1), link: z.string().url() }).parse(await response.json());
-  const url = new URL(result.link);
+  const result = z.object({ id: z.string().min(1), link: z.string().url().nullish() }).parse(await response.json());
+  const url = new URL(result.link ?? `https://${config.environment === "production" ? "asaas.com" : "sandbox.asaas.com"}/checkoutSession/show?id=${encodeURIComponent(result.id)}`);
   const host = config.environment === "production" ? "www.asaas.com" : "sandbox.asaas.com";
-  if (url.protocol !== "https:" || url.hostname !== host || url.username || url.password || url.port) throw new Error("Invalid Asaas checkout URL");
-  return result;
+  if (url.protocol !== "https:" || ![host, ...(config.environment === "production" ? ["asaas.com"] : [])].includes(url.hostname) || url.username || url.password || url.port) throw new Error("Invalid Asaas checkout URL");
+  return { id: result.id, link: url.toString() };
 }

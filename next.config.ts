@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/:path*", has: [{ type: "host", value: "notaalvo.com.br" }], destination: "https://www.notaalvo.com.br/:path*", permanent: false },
-      ...["/entrar", "/definir-senha", "/auth/:path*", "/app/:path*"].map(source => ({
+      ...["/app/:path*"].map(source => ({
         source,
         has: [{ type: "host" as const, value: "www.notaalvo.com.br" }],
         destination: `https://app.notaalvo.com.br${source}`,

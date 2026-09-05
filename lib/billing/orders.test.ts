@@ -10,6 +10,7 @@ it("reconciles early and repeated events without reverting paid orders", async (
     const plans = readFileSync("supabase/migrations/20260828090000_pilot_operations.sql", "utf8").split("create table if not exists public.usage_events")[0];
     await db.exec(plans);
     await db.exec(readFileSync("supabase/migrations/20260905130000_enem_express.sql", "utf8"));
+    await db.exec(readFileSync("supabase/migrations/20260905140000_asaas_refunds.sql", "utf8"));
     await db.exec(`insert into auth.users values ('00000000-0000-4000-8000-000000000001');
       insert into public.asaas_orders (id,user_id,attempt_hash,attempt,result,product_name,amount_cents)
       values ('00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000001','hash','{}','{}','ENEM Express',9700);
@@ -28,5 +29,9 @@ it("reconciles early and repeated events without reverting paid orders", async (
       expect(subscriptions.rows[0].status).toBe("active");
       expect(Date.parse(subscriptions.rows[0].ends)).toBe(Date.parse("2026-11-16T03:00:00Z"));
     } else expect(subscriptions.rows).toHaveLength(0);
+    await db.exec(`insert into public.asaas_webhook_events(event_id,event_type,order_reference) values ('refund','PAYMENT_REFUNDED','00000000-0000-4000-8000-000000000002');
+      insert into public.asaas_webhook_events(event_id,event_type,checkout_id) values ('late-paid','CHECKOUT_PAID','checkout1');`);
+    expect((await db.query<{status:string}>("select status from public.asaas_orders")).rows[0].status).toBe("revoked");
+    expect((await db.query("select * from public.user_subscriptions where status = 'active'")).rows).toHaveLength(0);
   } finally { await db.close(); }
 });

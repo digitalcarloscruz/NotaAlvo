@@ -127,6 +127,23 @@ O endpoint `/api/health` informa se o runtime Next.js está saudável e se o ban
 
 O `vercel.json` identifica o projeto como Next.js. Configure as mesmas variáveis em Production, Preview e Development antes de publicar.
 
-O domínio público é `https://notaalvo.com.br` e a área do candidato fica em `https://notaalvo.com.br/app`. No Supabase hospedado, configure **Site URL** como `https://notaalvo.com.br` e inclua `https://notaalvo.com.br/**` e `https://www.notaalvo.com.br/**` nas **Redirect URLs**. A configuração local está em `supabase/config.toml`; editar esse arquivo não altera automaticamente o serviço hospedado.
+A landing ENEM fica em `https://www.notaalvo.com.br`, o quiz termina em `/resultadodoquiz` e o acesso do aluno fica em `https://app.notaalvo.com.br/entrar`. A raiz do subdomínio `app` redireciona para `/app`. Conecte `notaalvo.com.br`, `www.notaalvo.com.br` e `app.notaalvo.com.br` ao mesmo projeto Next.js na Vercel; as regras por host estão em `next.config.ts`.
+
+No Supabase hospedado, configure **Site URL** como `https://app.notaalvo.com.br` e inclua `https://app.notaalvo.com.br/**` nas **Redirect URLs**. A configuração local está em `supabase/config.toml`; editar esse arquivo não altera automaticamente o serviço hospedado.
 
 Identificadores internos legados (`rota_score`, chaves de cache e IDs de catálogo) são preservados para manter a compatibilidade dos dados existentes.
+
+
+## Quiz público ENEM
+
+A landing usa 12 questões autorais em `lib/enem/landing-quiz.ts`, com três por área. O progresso fica no `sessionStorage` da mesma aba e origem. `/resultadodoquiz` apresenta uma prévia das áreas com erros; não calcula TRI nem avalia redação. As respostas e o cálculo no cliente não são uma barreira de acesso a conteúdo pago.
+
+O provedor é o **Asaas**, com **R$ 97,00 em pagamento único**, via Pix ou cartão. O valor é definido no servidor. A API `/api/billing/checkout` exige autenticação e um quiz completo, persiste respostas e resultado calculado no servidor e reaproveita o checkout ativo da mesma tentativa. O login permanece na origem do quiz para preservar o sessionStorage.
+
+Configuração: aplicar `20260905120000_asaas_webhook_inbox.sql` e `20260905130000_enem_express.sql`; configurar `SUPABASE_SERVICE_ROLE_KEY`, `ASAAS_API_KEY`, `ASAAS_ENVIRONMENT` (`sandbox` por padrão), `ASAAS_SITE_ORIGIN` (origem HTTPS sem barra final), `ASAAS_WEBHOOK_TOKEN` (mínimo 32 caracteres). Cadastrar no Asaas o webhook `POST /api/webhooks/asaas` com esse token e eventos `CHECKOUT_CREATED`, `CHECKOUT_PAID`, `CHECKOUT_CANCELED`, `CHECKOUT_EXPIRED`. Ver [documentação de Checkout](https://docs.asaas.com/docs/asaas-checkout) e [eventos](https://docs.asaas.com/docs/eventos-para-checkout).
+
+O webhook valida `asaas-access-token` e grava somente metadados operacionais em uma inbox privada com deduplicação. Triggers reconciliam o pedido mesmo se a notificação chegar antes da persistência do checkout. Um evento de cancelamento/expiração não reverte um pedido pago. O redirecionamento não confirma pagamento. Falhas ambíguas na criação preservam o pedido e exigem reconciliação pelo suporte, evitando duplicação automática de cobrança.
+
+**Produto:** ENEM Express, R$ 97 em pagamento único, com todas as funcionalidades inteligentes de IA até 15/11/2026 (fim do dia em São Paulo), último dia da aplicação regular conforme o [Inep](https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/orientacoes/cronograma). Catálogo fixo em `lib/billing/enem-express.ts`. O pagamento confirmado ativa o plano automaticamente, substituindo o plano atual, sem renovação. Mantém os limites técnicos existentes de 30 solicitações diárias e 5 uploads mensais; acesso a todas as funcionalidades não significa consumo ilimitado. A consulta de permissões desconsidera planos vencidos e mantém o fallback legado do piloto.
+
+**Ativação pendente:** implementar revogação em estornos/chargebacks e homologar o fluxo no sandbox antes de definir `ASAAS_CHECKOUT_ENABLED=true`. A interface permanece com matrículas desativadas por padrão. Nenhuma credencial, migração remota ou configuração do Asaas é alterada automaticamente.

@@ -4,9 +4,9 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const metadataBase = new URL("https://notaalvo.com.br");
+  const metadataBase = new URL("https://www.notaalvo.com.br");
   const title = "Nota Alvo — Seu próximo acerto começa aqui";
-  const description = "Preparação adaptativa para ENEM e concursos públicos com diagnóstico, plano autoajustável e recomendações explicáveis.";
+  const description = "Preparação para o ENEM com diagnóstico, plano autoajustável e recomendações explicáveis.";
   return {
     metadataBase,
     title: { default: title, template: "%s | Nota Alvo" },

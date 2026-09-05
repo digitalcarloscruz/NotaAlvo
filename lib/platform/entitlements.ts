@@ -21,6 +21,7 @@ export async function getUserEntitlements(admin: SupabaseClient, userId: string)
     .select("plan_code, subscription_plans(entitlements)")
     .eq("user_id", userId)
     .in("status", ["trialing", "active"])
+    .or(`current_period_ends_at.is.null,current_period_ends_at.gt.${new Date().toISOString()}`)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

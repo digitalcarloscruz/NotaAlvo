@@ -4,9 +4,9 @@ test("landing and health endpoint are available", async ({ page, request }) => {
   const health = await request.get("/api/health");
   expect(health.ok()).toBeTruthy();
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Saiba o que estudar/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Entrar", exact: true })).toHaveAttribute("href", "/entrar");
-  await expect(page.getByRole("link", { name: "Entrar na plataforma" })).toHaveAttribute("href", "/entrar");
+  await expect(page.getByRole("heading", { name: /Seu próximo acerto começa/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Já sou aluno →", exact: true })).toHaveAttribute("href", "https://app.notaalvo.com.br/entrar");
+  await expect(page.getByRole("button", { name: "Começar meu quiz →" })).toBeEnabled();
 });
 
 test("signup form becomes available after auth initialization", async ({ page }) => {

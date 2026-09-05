@@ -4,6 +4,19 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   typedRoutes: true,
+  async redirects() {
+    return [
+      { source: "/:path*", has: [{ type: "host", value: "notaalvo.com.br" }], destination: "https://www.notaalvo.com.br/:path*", permanent: false },
+      ...["/entrar", "/definir-senha", "/auth/:path*", "/app/:path*"].map(source => ({
+        source,
+        has: [{ type: "host" as const, value: "www.notaalvo.com.br" }],
+        destination: `https://app.notaalvo.com.br${source}`,
+        permanent: false,
+      })),
+      { source: "/", has: [{ type: "host", value: "app.notaalvo.com.br" }], destination: "/app", permanent: false },
+      { source: "/resultadodoquiz", has: [{ type: "host", value: "app.notaalvo.com.br" }], destination: "https://www.notaalvo.com.br/resultadodoquiz", permanent: false },
+    ];
+  },
   turbopack: {
     root: process.cwd(),
   },

@@ -1,78 +1,25 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Brand } from "@/components/brand";
+import { EnemLandingQuiz } from "@/components/enem-landing-quiz";
+
+export const metadata: Metadata = {
+  title: "Quiz ENEM — descubra o que revisar",
+  description: "Teste seus conhecimentos em 12 questões autorais das quatro áreas do ENEM e identifique assuntos para revisar na reta final.",
+  alternates: { canonical: "https://www.notaalvo.com.br" },
+};
 
 export default function LandingPage() {
-  return (
-    <div className="landing">
-      <header className="landing-nav">
-        <Brand />
-        <nav aria-label="Navegação pública">
-          <a href="#como-funciona">Recursos</a>
-          <a href="#concursos">Concursos</a>
-          <a href="#planos">Planos</a>
-        </nav>
-        <Link className="landing-login" href="/entrar">Entrar</Link>
-      </header>
-
-      <main className="landing-main">
-        <section className="hero hero-clean">
-          <div className="hero-copy">
-            <span className="hero-badge">SEU PRÓXIMO ACERTO COMEÇA AQUI</span>
-            <h1>Saiba o que estudar.<br /><em>Agora.</em></h1>
-            <p>Escolha seu concurso ou envie o edital. A Nota Alvo mede seu nível, organiza sua semana e recalcula o caminho conforme você evolui.</p>
-            <div className="hero-facts">
-              <span><b>1.288</b> questões PMMG catalogadas</span>
-              <span><b>32</b> provas históricas</span>
-              <span><b>1 plano</b> que aprende com você</span>
-            </div>
-            <Link className="discover-button" href="/entrar?mode=signup&next=/app?onboarding=1">Descobrir meu plano <span>→</span></Link>
-          </div>
-          <div className="access-card">
-            <span className="access-kicker">ÁREA DO CANDIDATO</span>
-            <h2>Sua próxima ação, sem achismo</h2>
-            <p>Entre para ver seu plano, responder questões e acompanhar domínio e confiança por tópico.</p>
-            <Link className="access-primary" href="/entrar">Entrar na plataforma</Link>
-            <div className="access-divider"><i /><span>ou</span><i /></div>
-            <Link className="access-secondary" href="/entrar?mode=signup&next=/app?onboarding=1">Montar meu plano grátis</Link>
-            <small>Diagnóstico gratuito. Sem promessa de aprovação.</small>
-            <div className="access-preview"><span className="preview-dot" /><div><b>Motor explicável</b><small>Edital, domínio, recência e tempo disponível</small></div></div>
-          </div>
-        </section>
-
-        <section className="trust-strip">
-          <span>Uma plataforma. Muitos caminhos.</span>
-          <div><b>PMMG</b><small>primeira vertical validada</small></div>
-          <div><b>Pré e pós-edital</b><small>cadência em qualquer fase</small></div>
-          <div><b>Intelectual + TAF</b><small>quando o concurso exigir</small></div>
-        </section>
-
-        <section className="landing-section" id="como-funciona">
-          <p className="eyebrow">SEU PLANO PERSONALIZADO</p>
-          <h2>Não é só estudar mais.<br />É saber o que estudar agora.</h2>
-          <div className="benefit-grid">
-            <article><span>01</span><i>⌖</i><h3>Diagnóstico rápido</h3><p>Estimamos domínio e confiança sem depender de questões aleatórias.</p></article>
-            <article><span>02</span><i>✓</i><h3>Decisão diária</h3><p>Priorizamos o conteúdo que oferece maior ganho esperado naquele momento.</p></article>
-            <article><span>03</span><i>↗</i><h3>Plano resiliente</h3><p>A semana se reorganiza conforme você estuda, erra, acerta ou perde um dia.</p></article>
-          </div>
-        </section>
-
-        <section className="career-section" id="concursos">
-          <div><p className="eyebrow">CONHECIMENTO QUE VIAJA COM VOCÊ</p><h2>Seu domínio pertence a você.</h2><p>O que você aprende em um concurso é reaproveitado em todos os editais que cobram os mesmos tópicos.</p></div>
-          <div className="career-cards">
-            <article><span>CALENDÁRIO CONFIRMADO</span><h3>ENEM 2026</h3><p>8 e 15 de novembro • quatro áreas e redação</p><b>Trilha disponível →</b></article>
-            <article><span>VERTICAL DISPONÍVEL</span><h3>PMMG</h3><p>CFSD e CFO • acervo histórico catalogado</p><b>Explorar plano →</b></article>
-            <article><span>ARQUITETURA NACIONAL</span><h3>Policiais</h3><p>PF, PRF, polícias civis e militares</p><b>Em preparação</b></article>
-            <article><span>ARQUITETURA NACIONAL</span><h3>Fiscal e tribunais</h3><p>Conteúdo compartilhado e metas específicas</p><b>Em preparação</b></article>
-          </div>
-        </section>
-
-        <section className="pricing" id="planos">
-          <p className="eyebrow">COMECE AGORA</p>
-          <h2>Valide seu primeiro plano.</h2>
-          <div className="price-card"><div><span>NOTA ALVO ESSENCIAL</span><h3>Diagnóstico gratuito</h3><p>Onboarding, plano adaptativo, questões, revisão e Nota Alvo Score.</p></div><Link className="hero-cta" href="/entrar?mode=signup&next=/app?onboarding=1">Criar meu plano →</Link></div>
-        </section>
-      </main>
-      <footer className="landing-footer"><span>Nota Alvo — preparação adaptativa para ENEM e concursos.</span><span>Conteúdo identificado • Seus dados protegidos</span></footer>
-    </div>
-  );
+  return <div className="enem-landing">
+    <header className="enem-nav"><Brand /><nav aria-label="Navegação pública"><a href="#como-funciona">Como funciona</a><a href="#quiz">Fazer o quiz</a></nav><Link className="enem-login" href="https://app.notaalvo.com.br/entrar">Já sou aluno →</Link></header>
+    <main>
+      <section className="enem-hero">
+        <div className="enem-hero-copy"><span className="enem-kicker">NOTA ALVO • RETA FINAL DO ENEM</span><h1>Seu próximo acerto começa com o que você <em>precisa revisar.</em></h1><p>Você está estudando o que mais precisa? Teste seus conhecimentos e encontre um ponto de partida para organizar a revisão até o ENEM.</p><a className="enem-button" href="#quiz">Testar meus conhecimentos →</a><div className="enem-hero-facts"><span><b>12</b> questões autorais</span><span><b>4</b> áreas do conhecimento</span><span><b>Seu ritmo</b> sem cronômetro</span></div></div>
+        <EnemLandingQuiz />
+      </section>
+      <section className="enem-section" id="como-funciona"><span className="enem-kicker">DO PRIMEIRO TESTE À PRÓXIMA REVISÃO</span><h2>Uma direção mais clara para o seu estudo.</h2><div className="enem-feature-grid"><article><span>01</span><h3>Teste seus conhecimentos</h3><p>Responda questões de interpretação, resolução de problemas e conceitos das quatro áreas.</p></article><article><span>02</span><h3>Encontre pontos de atenção</h3><p>As respostas mostram quais assuntos desta amostra merecem uma nova revisão.</p></article><article><span>03</span><h3>Conheça o próximo passo</h3><p>Ao concluir, você vai para a página de diagnóstico e apresentação do curso para a reta final.</p></article></div></section>
+      <section className="enem-final-stretch"><div><span className="enem-kicker">RETA FINAL COM FOCO</span><h2>Faça cada sessão de estudo ter um objetivo.</h2><p>Uma questão errada pode revelar uma dúvida de conteúdo, de interpretação ou de cálculo. Identificar essa diferença ajuda a escolher o que praticar em seguida.</p></div><ul><li><b>Revisar o que ficou para trás.</b><span>Retome os conceitos por trás das alternativas que confundiram você.</span></li><li><b>Praticar e conferir.</b><span>Resolva novas questões do mesmo assunto e acompanhe seus acertos.</span></li><li><b>Incluir a redação no plano.</b><span>Este quiz não avalia produção textual. Reserve também tempo para escrever e revisar.</span></li></ul></section>
+      <section className="enem-bottom-cta"><h2>Comece pelo seu ponto de partida.</h2><p>Doze questões para olhar com mais atenção para sua preparação.</p><a className="enem-button" href="#quiz">Começar o quiz ENEM →</a><small>Diagnóstico limitado aos assuntos testados. Sem estimativa de nota ou promessa de aprovação.</small></section>
+    </main><footer className="enem-footer"><Brand /><span>Preparação para o ENEM, um acerto de cada vez.</span><Link href="https://app.notaalvo.com.br/entrar">Acesso do aluno</Link></footer>
+  </div>;
 }

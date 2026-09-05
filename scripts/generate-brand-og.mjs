@@ -13,8 +13,8 @@ const image = new ImageResponse(
       'Nota Alvo'),
     h('div', { style: { display: 'flex', flexDirection: 'column', gap: 20 } },
       h('div', { style: { fontSize: 72, fontWeight: 700, lineHeight: 1.1, maxWidth: 920 } }, 'Seu próximo acerto começa aqui.'),
-      h('div', { style: { fontSize: 28, color: '#d8ef86' } }, 'Preparação adaptativa para ENEM e concursos.')),
-    h('div', { style: { fontSize: 24, color: '#c2d2c7' } }, 'notaalvo.com.br')),
+      h('div', { style: { fontSize: 28, color: '#d8ef86' } }, 'Teste seus conhecimentos. Prepare-se para o ENEM.')),
+    h('div', { style: { fontSize: 24, color: '#c2d2c7' } }, 'www.notaalvo.com.br')),
   { width: 1200, height: 630 },
 );
 await writeFile(new URL('../public/og.png', import.meta.url), Buffer.from(await image.arrayBuffer()));

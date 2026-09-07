@@ -14,6 +14,7 @@ type ConfirmationError = "expired" | "invalid" | null;
 export function AuthForm({ initialMode, next, confirmationError }: { initialMode: "login" | "signup"; next: Route; confirmationError: ConfirmationError }) {
   const router = useRouter();
   const { status, signIn, signUp, resendConfirmation } = useAuth();
+  const isEnrollment = next.split("#")[0] === "/resultadodoquiz";
   const [mode, setMode] = useState(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,7 +34,7 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
   }, [next, router, status]);
 
   useEffect(() => {
-    if (next !== "/resultadodoquiz") return;
+    if (next.split("#")[0] !== "/resultadodoquiz") return;
     const frame = requestAnimationFrame(() => {
       try {
         const saved = JSON.parse(sessionStorage.getItem(QUIZ_CONTACT_KEY) ?? "null");
@@ -87,9 +88,9 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
       <section className="auth-panel">
         <Brand />
         <div className="auth-copy">
-          <p className="eyebrow">SUA JORNADA CONTINUA</p>
+          <p className="eyebrow">{isEnrollment ? "MATRÍCULA • 1. CONTA → 2. PAGAMENTO → 3. ACESSO" : "SUA JORNADA CONTINUA"}</p>
           <h1>{mode === "login" ? "Entre na Nota Alvo" : "Crie sua conta na Nota Alvo"}</h1>
-          <p>{mode === "login" ? "Seu plano, evolução e revisões ficam sincronizados." : "Comece pelo diagnóstico e receba um plano adaptado à sua rotina."}</p>
+          <p>{isEnrollment ? "Primeiro, identifique sua conta. Depois você volta à matrícula para pagar R$ 97 pelo Asaas. Criar a conta é gratuito e não gera cobrança." : mode === "login" ? "Seu plano, evolução e revisões ficam sincronizados." : "Comece pelo diagnóstico e receba um plano adaptado à sua rotina."}</p>
         </div>
         <div className="auth-tabs" role="tablist" aria-label="Acesso à conta">
           <button className={mode === "login" ? "active" : ""} type="button" onClick={() => { setMode("login"); setMessage(""); }}>Entrar</button>

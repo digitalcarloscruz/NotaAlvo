@@ -70,6 +70,12 @@ export type StudyTask = {
 };
 
 export type ReviewItem = {
+  questionId?: string;
+  topicId?: string;
+  options?: string[];
+  answer?: number;
+  selectedOption?: number;
+  explanation?: string;
   id: string;
   questionText: string;
   subject: string;
@@ -81,6 +87,8 @@ export type ReviewItem = {
 };
 
 export type AnswerRecord = {
+  evidenceId?: string;
+  questionId?: string;
   topicId: string;
   correct: boolean;
   context: "diagnostic" | "practice" | "simulation" | "review";
@@ -95,6 +103,7 @@ export type ActivityEvent = {
 
 export type RotaState = {
   version: 3;
+  importedQuizId?: string;
   profile: CandidateProfile;
   mastery: Record<string, TopicMastery>;
   answers: AnswerRecord[];
@@ -134,6 +143,11 @@ export type Priority = TopicDefinition & {
 };
 
 export type QuestionEvidence = {
+  evidenceId?: string;
+  id?: string;
+  options?: string[];
+  explanation?: string;
+  persisted?: boolean;
   topicId?: string;
   axis: string;
   topic: string;

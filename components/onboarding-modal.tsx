@@ -22,14 +22,14 @@ function toggle<T>(items: T[], value: T) {
 }
 
 export function OnboardingModal({ open, onClose, onComplete }: Props) {
-  const { completeOnboarding } = useRota();
+  const { completeOnboarding, state } = useRota();
   const [step, setStep] = useState(1);
-  const [career, setCareer] = useState("pmmg-cfsd");
+  const [career, setCareer] = useState(state.profile.career);
   const [notice, setNotice] = useState<"pre_notice" | "published" | "file">("pre_notice");
   const [noticeFile, setNoticeFile] = useState<string | null>(null);
   const [education, setEducation] = useState("medio");
   const [stage, setStage] = useState("starting");
-  const [interests, setInterests] = useState<string[]>(["policial"]);
+  const [interests, setInterests] = useState<string[]>(primaryInterestsForCareer(state.profile.career));
   const [enemFocusArea, setEnemFocusArea] = useState<EnemFocusArea>("undecided");
   const [targetCourse, setTargetCourse] = useState("");
   const [targetInstitution, setTargetInstitution] = useState("");
@@ -95,9 +95,9 @@ export function OnboardingModal({ open, onClose, onComplete }: Props) {
 
         {step === 4 && <section className="diagnosis-step active"><h2 id="onboarding-title">Como você prefere começar?</h2><p>Preferência é uma hipótese; depois comparamos com seu desempenho observado.</p><div className="choice-group"><span>Formatos mais usados</span><div className="subject-picks">{[["theory","Teoria"],["questions","Questões"],["review","Revisões"],["simulation","Simulados"]].map(([value,label]) => <label key={value}><input type="checkbox" checked={preferredFormats.includes(value as StudyTaskType)} onChange={() => setPreferredFormats(toggle(preferredFormats,value as StudyTaskType))} /> {label}</label>)}</div></div><div className="choice-group"><span>Facilidades percebidas</span><div className="subject-picks">{(isEnem ? ["Linguagens","Redação","Matemática","Ciências Humanas","Ciências da Natureza"] : ["Linguagens","Raciocínio Lógico","Direito","Conhecimentos Gerais"]).map((value) => <label key={value}><input type="checkbox" checked={strengths.includes(value)} onChange={() => setStrengths(toggle(strengths,value))} /> {value}</label>)}</div></div></section>}
 
-        {step === 5 && <section className="diagnosis-step active"><h2 id="onboarding-title">Vamos medir seu ponto de partida.</h2><p>Domínio e confiança são calculados separadamente. Sua percepção inicial tem peso baixo até surgirem evidências.</p><div className="diagnosis-result"><span>PRÓXIMO PASSO</span><b>10 questões • cerca de 8 minutos</b><small>A rota será recalculada após cada resposta.</small></div><div className="trust-note">✓ Sem data de prova? Você entra automaticamente no modo pré-edital.</div></section>}
+        {step === 5 && <section className="diagnosis-step active"><h2 id="onboarding-title">Vamos medir seu ponto de partida.</h2><p>Domínio e confiança são calculados separadamente. Sua percepção inicial tem peso baixo até surgirem evidências.</p><div className="diagnosis-result"><span>PRÓXIMO PASSO</span><b>{state.importedQuizId ? "Seu quiz de 12 questões já foi reaproveitado" : "10 questões • cerca de 8 minutos"}</b><small>A rota será recalculada após cada resposta.</small></div><div className="trust-note">✓ Sem data de prova? Você entra automaticamente no modo pré-edital.</div></section>}
 
-        <div className="diagnosis-actions"><button className="secondary-button" type="button" disabled={step === 1} onClick={() => setStep((value) => Math.max(1, value - 1))}>Voltar</button><button className="primary-button" type="button" onClick={() => step === 5 ? finish() : setStep((value) => Math.min(5, value + 1))}>{step === 5 ? "Começar diagnóstico →" : "Continuar →"}</button></div>
+        <div className="diagnosis-actions"><button className="secondary-button" type="button" disabled={step === 1} onClick={() => setStep((value) => Math.max(1, value - 1))}>Voltar</button><button className="primary-button" type="button" onClick={() => step === 5 ? finish() : setStep((value) => Math.min(5, value + 1))}>{step === 5 ? state.importedQuizId ? "Ver minha primeira semana →" : "Começar diagnóstico →" : "Continuar →"}</button></div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  recordLocalReview as applyLocalReview,
   completeOnboarding as applyOnboarding,
   completeTask as applyTaskCompletion,
   completeWeeklyCheckin as applyWeeklyCheckin,
@@ -29,6 +30,8 @@ import { useRef } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { createClient } from "@/lib/supabase/client";
 
+import { importQuiz } from "@/lib/enem/import-quiz";
+
 const STORAGE_KEY = "rota-adaptive-state-v3";
 const storageKey = (userId?: string) => userId ? `${STORAGE_KEY}:${userId}` : STORAGE_KEY;
 
@@ -46,6 +49,7 @@ type RotaContextValue = {
     context: "diagnostic" | "practice" | "simulation" | "review",
   ) => void;
   completeTask: (taskId: string) => void;
+  recordLocalReview: (id: string, selected: number) => void;
   completeWeeklyCheckin: (checkin?: WeeklyCheckinInput) => void;
   recalculate: (reason?: string) => void;
   resetDemo: () => void;
@@ -82,12 +86,11 @@ export function RotaProvider({ children }: { children: ReactNode }) {
   const { user, status: authStatus } = useAuth();
   const supabase = useMemo(() => createClient(), []);
   const [state, setState] = useState<RotaState>(initialState);
-  const stateRef = useRef(state);
+  const remoteWritable = useRef(false);
   const [localHydrated, setLocalHydrated] = useState(false);
   const [syncReady, setSyncReady] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("loading");
 
-  useEffect(() => { stateRef.current = state; }, [state]);
 
   useEffect(() => {
     const parsed = readStoredState(STORAGE_KEY);
@@ -105,6 +108,7 @@ export function RotaProvider({ children }: { children: ReactNode }) {
       await Promise.resolve();
       if (!active) return;
       setSyncReady(false);
+      remoteWritable.current = false;
       if (!user || !supabase) {
         const localState = readStoredState(STORAGE_KEY);
         if (localState) setState(localState);
@@ -115,7 +119,7 @@ export function RotaProvider({ children }: { children: ReactNode }) {
       }
       setSyncStatus("loading");
       const userLocalState = readStoredState(storageKey(user.id));
-      const seed = userLocalState ?? stateRef.current;
+      const seed = userLocalState ?? initialState();
       const { data, error } = await supabase
         .from("candidate_states")
         .select("state, updated_at")
@@ -132,14 +136,26 @@ export function RotaProvider({ children }: { children: ReactNode }) {
 
       const remote = data?.state as RotaState | undefined;
       const validRemote = remote?.version === 3 ? remote : null;
-      const chosen = validRemote && new Date(validRemote.updatedAt).getTime() >= new Date(seed.updatedAt).getTime()
+      const chosen = validRemote && (!userLocalState || new Date(validRemote.updatedAt).getTime() >= new Date(seed.updatedAt).getTime())
         ? validRemote
         : seed;
       const accountName = typeof user.user_metadata.full_name === "string" ? user.user_metadata.full_name.trim() : "";
       const personalized = chosen.profile.name === "Candidato" && accountName
         ? { ...chosen, profile: { ...chosen.profile, name: accountName }, updatedAt: new Date().toISOString() }
         : chosen;
-      setState(personalized);
+      let restored = personalized;
+      if (!restored.importedQuizId) {
+        try {
+          const response = await fetch("/api/quiz/contact");
+          if (response.ok) {
+            const payload = await response.json();
+            if (payload.data) restored = importQuiz(restored, payload.data.id, payload.data.attempt);
+          }
+        } catch { /* Existing study data remains available when recovery fails. */ }
+      }
+      if (!active) return;
+      remoteWritable.current = true;
+      setState(restored);
       setSyncStatus("synced");
       setSyncReady(true);
     };
@@ -150,7 +166,7 @@ export function RotaProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!localHydrated || !syncReady) return;
     localStorage.setItem(storageKey(user?.id), JSON.stringify(state));
-    if (!user || !supabase) return;
+    if (!user || !supabase || !remoteWritable.current) return;
 
     const timer = window.setTimeout(() => {
       setSyncStatus("saving");
@@ -189,6 +205,8 @@ export function RotaProvider({ children }: { children: ReactNode }) {
     [state.diagnostic, user],
   );
 
+  const recordLocalReview = useCallback((id: string, selected: number) => { setState(current => applyLocalReview(current, id, selected)); }, []);
+
   const completeTask = useCallback((taskId: string) => {
     setState((current) => applyTaskCompletion(current, taskId));
     if (user) trackPilotEvent("task_completed", `task:${taskId}`, {});
@@ -215,6 +233,7 @@ export function RotaProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       recordAnswer,
       completeTask,
+      recordLocalReview,
       completeWeeklyCheckin,
       recalculate,
       resetDemo,
@@ -227,6 +246,7 @@ export function RotaProvider({ children }: { children: ReactNode }) {
       completeOnboarding,
       recordAnswer,
       completeTask,
+      recordLocalReview,
       completeWeeklyCheckin,
       recalculate,
       resetDemo,

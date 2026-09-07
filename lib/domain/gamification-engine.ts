@@ -1,3 +1,4 @@
+import { calculatePriorities } from "@/lib/domain/adaptive-engine";
 import type { RotaState } from "@/lib/domain/rota";
 import type { Achievement, GamificationSnapshot, Mission } from "@/lib/progress/types";
 
@@ -12,7 +13,12 @@ export function calculateGamification(state: RotaState, physicalResultCount = 0,
     : state.plan.filter((task) => task.status === "completed").length;
   const weeklyClosed = recentActivity.some((event) => event.type === "weekly_checkin");
   const sessionTarget = Math.max(1, Math.min(3, state.plan.length));
+  const focus = state.plan.find(task => task.type !== "weekly_checkin")?.topicId ?? calculatePriorities(state, now)[0].id;
+  const focusLabel = calculatePriorities(state, now).find(topic => topic.id === focus)?.topic ?? "seu assunto prioritário";
+  const focusAnswers = state.answers.filter(answer => answer.topicId === focus && answer.context !== "diagnostic" && new Date(answer.answeredAt) >= weekStart);
+  const focusCorrect = focusAnswers.filter(answer => answer.correct).length;
   const missions: Mission[] = [
+    { code: `focus_${focus}`, title: `Reforçar ${focusLabel}`, description: "Resolva 3 questões corretamente sobre sua prioridade da semana. Confira a explicação dos erros antes de avançar.", progress: Math.min(focusCorrect, 3), target: 3, completed: focusCorrect >= 3, xp: 25 },
     { code: "steady_sessions", title: "Constância antes de intensidade", description: `Conclua ${sessionTarget} sessões planejadas, sem aumentar sua carga.`, progress: Math.min(completedPlan, sessionTarget), target: sessionTarget, completed: completedPlan >= sessionTarget, xp: 30 },
     { code: "evidence_week", title: "Aprender com evidências", description: "Responda 10 questões ao longo da semana.", progress: Math.min(recentAnswers, 10), target: 10, completed: recentAnswers >= 10, xp: 25 },
     { code: "weekly_close", title: "Fechar para recalibrar", description: "Faça um fechamento semanal da seu plano.", progress: weeklyClosed ? 1 : 0, target: 1, completed: weeklyClosed, xp: 35 },

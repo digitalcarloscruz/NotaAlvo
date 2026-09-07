@@ -35,9 +35,10 @@ function DashboardContent() {
       window.setTimeout(() => document.getElementById("weekly-checkin")?.scrollIntoView({ behavior: "smooth" }), 0);
       return;
     }
+    if (view.nextAction.topicId.startsWith("RED.")) return router.push("/app/redacoes");
     if (view.nextAction.type === "review") return router.push("/app/revisoes");
     if (view.nextAction.type === "simulation") return router.push("/app/simulados");
-    router.push("/app/questoes");
+    router.push(`/app/questoes?topic=${encodeURIComponent(view.nextAction.topicId)}`);
   }
 
   function finishCheckin() {
@@ -77,7 +78,7 @@ function DashboardContent() {
         <section className="panel priorities-panel"><div className="panel-head"><div><h3>Mapa de prioridades</h3><p>Domínio e confiança separados</p></div></div><div className="priority-list">{view.priorities.slice(0, 4).map((item, index) => <div className="priority-item" key={item.id}><div className={`ring ${item.priority >= 75 ? "high" : item.priority >= 60 ? "medium" : "low"}`}><span>{index + 1}</span></div><div><b>{item.subject}</b><small>Prioridade {item.priority}/100 • confiança {Math.round(item.confidence * 100)}%</small></div><strong>{Math.round(item.mastery * 100)}%</strong></div>)}</div></section>
       </div>
 
-      <OnboardingModal open={shouldShowOnboarding} onClose={() => { setOnboardingOpen(false); setOnboardingDismissed(true); }} onComplete={() => router.push("/app/questoes")} />
+      <OnboardingModal key={`${state.profile.career}:${state.importedQuizId ?? "new"}`} open={shouldShowOnboarding} onClose={() => { setOnboardingOpen(false); setOnboardingDismissed(true); }} onComplete={() => router.push(state.importedQuizId ? "/app/plano" : "/app/questoes")} />
     </div>
   );
 }

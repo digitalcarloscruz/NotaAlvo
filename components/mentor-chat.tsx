@@ -20,6 +20,23 @@ export function MentorChat() {
   const [message, setMessage] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const topic = new URLSearchParams(window.location.search).get("topic");
+    if (!topic) return;
+    const frame = requestAnimationFrame(() => {
+      let prompt = `Preciso revisar ${topic.slice(0, 200)} para o ENEM. Explique o conceito, mostre um exemplo e proponha um exercício para eu tentar.`;
+      try {
+        const context = JSON.parse(sessionStorage.getItem("nota-alvo-review-context") ?? "null");
+        if (context?.topic === topic && typeof context.text === "string" && Array.isArray(context.options) && Number.isInteger(context.correctOption)) {
+          prompt = `Ajude-me a entender esta questão de ${topic}. Esta é uma explicação de apoio por IA, não uma resolução oficial. Explique o raciocínio e o assunto a revisar. Se faltar informação, diga isso.\nQuestão: ${context.text.slice(0, 8000)}\nAlternativas: ${JSON.stringify(context.options).slice(0, 4000)}\nMarquei: ${context.selected + 1}. Gabarito cadastrado: ${context.correctOption + 1}.`;
+          sessionStorage.removeItem("nota-alvo-review-context");
+        }
+      } catch { /* General topic request remains available. */ }
+      setQuestion(prompt);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   const load = useCallback(async () => {
     if (!user) return;
     setHistoryLoading(true);

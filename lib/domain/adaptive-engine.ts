@@ -1,3 +1,4 @@
+import { priorityScore } from "@/lib/domain/priority";
 import type {
   ActivityEvent,
   JourneyMode,
@@ -131,7 +132,7 @@ export function determineMode(state: RotaState, now = new Date()): JourneyMode {
 }
 
 function forgettingRisk(item: TopicMastery, now: Date) {
-  if (!item.lastAnsweredAt) return 1;
+  if (!item.lastAnsweredAt) return 0;
   return clamp((now.getTime() - new Date(item.lastAnsweredAt).getTime()) / DAY / 30);
 }
 
@@ -146,15 +147,7 @@ export function calculatePriorities(state: RotaState, now = new Date()): Priorit
   const currentUrgency = urgency(state, now);
   return topicsForProfile(state.profile).map((topic) => {
     const mastery = state.mastery[topic.id] ?? createMastery(topic.id);
-    const gap = 1 - mastery.score;
-    const uncertainty = 1 - mastery.confidence;
-    const raw =
-      topic.weight * 0.35 +
-      gap * 0.35 +
-      forgettingRisk(mastery, now) * 0.15 +
-      currentUrgency * 0.1 +
-      uncertainty * 0.05;
-    const priority = Math.round(clamp(raw) * 100);
+    const priority = priorityScore(topic.weight, mastery.score, mastery.confidence, forgettingRisk(mastery, now) * 30, currentUrgency, mastery.evidenceCount ? mastery.wrong / mastery.evidenceCount : 0);
     return {
       ...topic,
       mastery: mastery.score,
@@ -165,11 +158,12 @@ export function calculatePriorities(state: RotaState, now = new Date()): Priorit
   }).sort((a, b) => b.priority - a.priority);
 }
 
-function dateForWeekday(weekday: number, now: Date) {
+function dateForWeekday(weekday: number, now: Date, period = "morning") {
   const date = new Date(now);
   const delta = (weekday - date.getDay() + 7) % 7;
   date.setDate(date.getDate() + delta);
-  date.setHours(9, 0, 0, 0);
+  date.setHours(period === "evening" ? 19 : period === "afternoon" ? 14 : 9, 0, 0, 0);
+  if (date < now) date.setDate(date.getDate() + 7);
   return date;
 }
 
@@ -185,17 +179,18 @@ export function recalculatePlan(
     ? state.profile.availableDays
     : [1, 2, 3, 5, 6];
   const weeklyMinutes = Math.max(120, Math.round(state.profile.weeklyHours * 60));
-  const sessionCount = Math.max(1, Math.min(days.length, 6));
+  const orderedDays = [...new Set(days)].sort((a, b) => dateForWeekday(a, now, state.profile.preferredPeriod).getTime() - dateForWeekday(b, now, state.profile.preferredPeriod).getTime());
+  const sessionCount = Math.max(1, Math.min(orderedDays.length, 7, Math.floor(weeklyMinutes / 25)));
   const sessionMinutes = Math.max(25, Math.floor(weeklyMinutes / sessionCount));
   const formats: StudyTaskType[] = state.profile.preferredFormats.length
     ? state.profile.preferredFormats
     : ["questions"];
 
   const previousPlan = state.plan;
-  state.plan = days.slice(0, sessionCount).map((weekday, index) => {
+  state.plan = orderedDays.slice(0, sessionCount).map((weekday, index) => {
     const topic = ranked[index % ranked.length];
-    const weeklyReview = index === sessionCount - 1;
-    const scheduledFor = dateForWeekday(weekday, now);
+    const weeklyReview = sessionCount > 1 && index === sessionCount - 1;
+    const scheduledFor = dateForWeekday(weekday, now, state.profile.preferredPeriod);
     const previous = previousPlan.find((task) => dateKey(new Date(task.scheduledFor)) === dateKey(scheduledFor));
     if (previous?.status === "completed") return previous;
     const type: StudyTaskType = weeklyReview
@@ -209,7 +204,7 @@ export function recalculatePlan(
       topicId: topic.id,
       subject: topic.subject,
       topic: weeklyReview ? "Fechamento e calibração da semana" : topic.topic,
-      type,
+      type: type === "theory" ? "questions" : type,
       minutes: weeklyReview ? Math.min(30, sessionMinutes) : sessionMinutes,
       priority: topic.priority,
       status: "planned",
@@ -238,6 +233,7 @@ function applySelfAssessment(state: RotaState, strengths: string[]) {
     state.mastery[topic.id] ??= createMastery(topic.id);
   }
   for (const mastery of Object.values(state.mastery)) {
+    if (mastery.evidenceCount > 0) continue;
     mastery.alpha = 2;
     mastery.beta = 2;
     mastery.score = 0.5;
@@ -245,6 +241,7 @@ function applySelfAssessment(state: RotaState, strengths: string[]) {
   }
   for (const topic of TOPICS.filter((item) => strengths.includes(item.subject))) {
     const mastery = state.mastery[topic.id];
+    if (mastery.evidenceCount > 0) continue;
     mastery.alpha = 2.6;
     mastery.beta = 1.8;
     mastery.score = mastery.alpha / (mastery.alpha + mastery.beta);
@@ -269,8 +266,8 @@ export function completeOnboarding(
   };
   state.profile.mode = determineMode(state, now);
   applySelfAssessment(state, profile.selfReportedStrengths);
-  state.diagnostic = { active: true, answered: 0, target: 10, completedAt: null };
-  state.stats.xp += 20;
+  if (!state.importedQuizId && !state.diagnostic.completedAt) state.diagnostic = { active: true, answered: 0, target: 10, completedAt: null };
+  if (!input.profile.onboardingCompleted) state.stats.xp += 20;
   state.stats.level = Math.floor(state.stats.xp / 150) + 1;
   return recalculatePlan(
     state,
@@ -303,6 +300,7 @@ export function recordAnswer(
   context: "diagnostic" | "practice" | "simulation" | "review",
   now = new Date(),
 ): RotaState {
+  if (question.evidenceId && input.answers.some(answer => answer.evidenceId === question.evidenceId)) return input;
   const state = structuredClone(input);
   const topic = topicForQuestion(question);
   const mastery = state.mastery[topic.id] ?? createMastery(topic.id);
@@ -315,11 +313,12 @@ export function recordAnswer(
   } else {
     mastery.beta += weight;
     mastery.wrong += 1;
-    state.reviewQueue.unshift({
-      id: `review-${now.getTime()}`,
+    if (!question.persisted) state.reviewQueue.unshift({
+      questionId: question.id, topicId: topic.id, options: question.options, answer: question.answer, selectedOption, explanation: question.explanation,
+      id: `review-${question.id ?? topic.id}-${now.getTime()}`,
       questionText: question.text,
       subject: topic.subject,
-      topic: topic.topic,
+      topic: question.topic,
       dueAt: new Date(now.getTime() + DAY).toISOString(),
       intervalDays: 1,
       recurrenceCount: 0,
@@ -334,7 +333,7 @@ export function recordAnswer(
   state.mastery[topic.id] = mastery;
   state.answers = [
     ...state.answers,
-    { topicId: topic.id, correct, context, answeredAt: now.toISOString() },
+    { evidenceId: question.evidenceId, questionId: question.id, topicId: topic.id, correct, context, answeredAt: now.toISOString() },
   ].slice(-500);
   state.stats.xp += correct ? 12 : 6;
   updateStreak(state, now);
@@ -406,7 +405,7 @@ export function getViewModel(state: RotaState, now = new Date()): RotaViewModel 
   const priorities = calculatePriorities(state, now);
   const liveMode = determineMode(state, now);
   const nextAction =
-    state.plan.find((task) => task.status === "planned") ?? state.plan[0] ?? {
+    [...state.plan].sort((a,b) => a.scheduledFor.localeCompare(b.scheduledFor)).find((task) => task.status === "planned") ?? state.plan[0] ?? {
       id: "fallback",
       scheduledFor: now.toISOString(),
       topicId: priorities[0].id,
@@ -434,4 +433,17 @@ export function getViewModel(state: RotaState, now = new Date()): RotaViewModel 
       post_exam: "Pós-prova",
     }[liveMode],
   };
+}
+
+export function recordLocalReview(input: RotaState, id: string, selected: number, now = new Date()): RotaState {
+  const item = input.reviewQueue.find(review => review.id === id && review.status === "pending");
+  if (!item?.options || item.answer === undefined || new Date(item.dueAt) > now || selected < 0 || selected >= item.options.length) return input;
+  const next = recordAnswer(input, { id: item.questionId, topicId: item.topicId, axis: item.subject, topic: item.topic, text: item.questionText, options: item.options, answer: item.answer, explanation: item.explanation, difficulty: "Média", persisted: true }, selected, "review", now);
+  const updated = next.reviewQueue.find(review => review.id === id)!;
+  const correct = selected === item.answer;
+  updated.recurrenceCount = correct ? updated.recurrenceCount + 1 : 0;
+  updated.intervalDays = [1, 7, 15, 30][Math.min(updated.recurrenceCount, 3)];
+  updated.status = updated.recurrenceCount >= 4 ? "completed" : "pending";
+  updated.dueAt = new Date(now.getTime() + updated.intervalDays * DAY).toISOString();
+  return next;
 }

@@ -25,3 +25,15 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: "Não foi possível salvar seus dados. Tente novamente em instantes." }, { status: 503 });
   return NextResponse.json({ result }, { headers: { "Cache-Control": "no-store" } });
 }
+
+export async function GET() {
+  const { createClient } = await import("@/lib/supabase/server");
+  const session = await createClient();
+  const admin = createAdminClient();
+  const auth = session && await session.auth.getUser();
+  const user = auth?.data.user;
+  if (!user?.email || !user.email_confirmed_at || !admin) return NextResponse.json({ error: "Confirme seu e-mail para recuperar o quiz." }, { status: 401 });
+  const { data, error } = await admin.from("enem_quiz_contacts").select("id,attempt").eq("email", user.email.toLowerCase()).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (error) return NextResponse.json({ error: "Não foi possível recuperar o quiz." }, { status: 503 });
+  return NextResponse.json({ data }, { headers: { "Cache-Control": "private, no-store" } });
+}

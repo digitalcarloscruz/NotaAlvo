@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   try { input = JSON.parse(body); } catch { return NextResponse.json({ error: "Dados inválidos." }, { status: 422 }); }
   const contact = quizContactSchema.safeParse(input?.contact);
   const attempt = parseQuizAttempt(input?.attempt);
-  const result = attempt && evaluateQuiz(attempt.answers);
+  const result = attempt && evaluateQuiz(attempt.answers, attempt.version);
   if (!contact.success || !result || input?.website) return NextResponse.json({ error: "Confira seus dados e conclua o quiz." }, { status: 422 });
   const admin = createAdminClient();
   if (!admin) return NextResponse.json({ error: "Não foi possível salvar. Tente novamente." }, { status: 503 });

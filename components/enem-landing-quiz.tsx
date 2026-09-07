@@ -16,7 +16,7 @@ export function EnemLandingQuiz() {
     const frame = requestAnimationFrame(() => {
       try {
         const saved = parseQuizAttempt(JSON.parse(sessionStorage.getItem(QUIZ_STORAGE_KEY) ?? "null"));
-        if (saved) {
+        if (saved?.version === QUIZ_VERSION) {
           setAnswers(saved.answers);
           const next = saved.answers.findIndex(answer => answer === null);
           setIndex(next === -1 ? 0 : next);
@@ -52,16 +52,18 @@ export function EnemLandingQuiz() {
   return <section className="enem-quiz" id="quiz" aria-label="Quiz diagnóstico ENEM">
     {!started ? <div className="enem-quiz-intro">
       <span className="enem-kicker">SEU PONTO DE PARTIDA</span>
-      <h2>O que você já sabe?<br />Vamos descobrir.</h2>
-      <p>Responda 12 questões de Linguagens, Matemática, Humanas e Natureza. Escolha uma alternativa por questão, sem consultar o gabarito.</p>
-      <ul><li>Sem cadastro para responder</li><li>Você pode voltar e revisar suas escolhas</li><li>Questões autorais, com cinco alternativas</li></ul>
+      <h2>Desafio ENEM:<br />até onde você vai?</h2>
+      <p>Responda 12 questões de Linguagens, Matemática, Humanas e Natureza. A seleção é exigente, com níveis médio, difícil e muito difícil definidos editorialmente. Escolha uma alternativa por questão, sem consultar o gabarito. Não é uma estimativa da sua nota no ENEM.</p>
+      <ul><li>Sem cadastro para responder</li><li>Você pode voltar e revisar suas escolhas</li><li>Questões oficiais, com cinco alternativas</li></ul>
       <p className="enem-quiz-disclosure">Ao concluir, informe seu nome e e-mail para ver gratuitamente seus acertos, erros e assuntos para revisar. Telefone opcional. Depois, você poderá conhecer o ENEM Express, sem obrigação de compra.</p>
       <button type="button" className="enem-button" disabled={!ready} onClick={() => setStarted(true)}>{!ready ? "Preparando quiz…" : answered > 0 ? "Retomar meu quiz →" : "Começar meu quiz →"}</button>
       {answered > 0 && <p className="enem-small">{answered} de 12 respostas salvas nesta aba.</p>}
     </div> : <div>
       <div className="enem-quiz-top"><span>{question.area}</span><span>Questão {index + 1} de {landingQuestions.length}</span></div>
       <progress value={answered} max={landingQuestions.length} aria-label={`${answered} de ${landingQuestions.length} questões respondidas`} />
-      <h2 ref={title} tabIndex={-1} className="enem-question-title">{question.text}</h2>
+      {question.source && <p className="enem-small">ENEM {question.source.year} • {question.source.application} • caderno {question.source.booklet} • questão {question.source.number} • nível editorial: {question.difficulty}. <a href={question.source.url} target="_blank" rel="noopener noreferrer">Fonte: Inep</a></p>}
+      <h2 ref={title} tabIndex={-1} className="enem-question-title">Leia e escolha uma alternativa.</h2>
+      <p className="enem-question-text">{question.text}</p>
       <fieldset className="enem-options"><legend className="enem-sr-only">Selecione uma alternativa</legend>{question.options.map((option, i) => <label className={`enem-option ${answers[index] === i ? "is-selected" : ""}`} key={option}>
         <input type="radio" name={question.id} value={i} checked={answers[index] === i} onChange={() => select(i)} />
         <span className="enem-option-letter" aria-hidden="true">{String.fromCharCode(65 + i)}</span><span>{option}</span>

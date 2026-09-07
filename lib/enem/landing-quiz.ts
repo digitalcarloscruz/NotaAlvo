@@ -1,40 +1,33 @@
-export const QUIZ_VERSION = 1;
+import { legacyQuestions } from "./landing-quiz-v1";
+import { challengeQuestions } from "./landing-quiz-v2";
+export const QUIZ_VERSION = 2;
 export const QUIZ_STORAGE_KEY = "nota-alvo-enem-quiz-v1";
 export const QUIZ_AREAS = ["Linguagens", "Matemática", "Ciências Humanas", "Ciências da Natureza"] as const;
 export type QuizArea = typeof QUIZ_AREAS[number];
-export type QuizQuestion = { id: string; area: QuizArea; topic: string; text: string; options: string[]; answer: number; explanation: string };
+export type QuizQuestion = { id: string; area: QuizArea; topic: string; text: string; options: string[]; answer: number; explanation: string; topicId?: string; difficulty?: "Média" | "Difícil" | "Muito difícil"; source?: { archiveItemId: string; year: number; day: number; number: number; application: string; booklet: string; url: string } };
 
-// Questões autorais de sondagem. Não reproduzem a TRI nem substituem um simulado.
-export const landingQuestions: QuizQuestion[] = [
-  { id: "ling-1", area: "Linguagens", topic: "Inferência textual", text: "Leia: ‘Quando a biblioteca passou a abrir aos domingos, as mesas antes vazias ganharam leitores que trabalhavam durante a semana.’ O trecho permite concluir que a mudança:", options: ["reduziu o interesse pela leitura nos outros dias.", "ampliou o acesso de pessoas com restrições de horário.", "substituiu a necessidade de comprar livros.", "aumentou a jornada de todos os leitores.", "tornou o acervo maior."], answer: 1, explanation: "O texto relaciona a abertura aos domingos à presença de leitores que trabalham durante a semana; não informa mudanças no acervo ou nos demais dias." },
-  { id: "mat-1", area: "Matemática", topic: "Porcentagem", text: "Um curso custa R$ 240. Em uma promoção, recebe desconto de 15%. Qual é o preço após o desconto?", options: ["R$ 36", "R$ 180", "R$ 200", "R$ 204", "R$ 225"], answer: 3, explanation: "15% de 240 corresponde a 36. O preço final é 240 − 36 = R$ 204." },
-  { id: "hum-1", area: "Ciências Humanas", topic: "Urbanização", text: "Em um bairro, áreas de solo exposto foram substituídas por asfalto, sem ampliação da drenagem. Mantidas as demais condições, em uma chuva intensa essa mudança tende a:", options: ["aumentar a infiltração de água no solo.", "reduzir o volume de água nas ruas.", "aumentar o escoamento superficial e o risco de alagamentos.", "impedir a erosão em toda a bacia hidrográfica.", "aumentar a recarga imediata dos aquíferos."], answer: 2, explanation: "O asfalto impermeabiliza o solo, reduzindo a infiltração e aumentando o escoamento superficial." },
-  { id: "nat-1", area: "Ciências da Natureza", topic: "Energia cinética", text: "Um veículo mantém a mesma massa e passa de 40 km/h para 80 km/h. Sua energia cinética passa a ser:", options: ["a metade da inicial.", "igual à inicial.", "duas vezes a inicial.", "três vezes a inicial.", "quatro vezes a inicial."], answer: 4, explanation: "A energia cinética é mv²/2. Ao dobrar a velocidade, a energia é multiplicada por 2² = 4." },
-  { id: "ling-2", area: "Linguagens", topic: "Argumentação", text: "Em um artigo, lê-se: ‘A cidade deve ampliar as ciclovias, pois trajetos seguros podem incentivar deslocamentos de bicicleta.’ Qual trecho apresenta a tese defendida?", options: ["‘A cidade deve ampliar as ciclovias’.", "‘pois trajetos seguros’.", "‘deslocamentos de bicicleta’.", "A palavra ‘pois’, isoladamente.", "O texto não apresenta uma posição."], answer: 0, explanation: "A tese é a posição defendida: ampliar as ciclovias. O trecho introduzido por ‘pois’ apresenta a justificativa." },
-  { id: "mat-2", area: "Matemática", topic: "Proporcionalidade", text: "Uma receita para 6 pessoas utiliza 450 g de arroz. Mantendo a mesma quantidade por pessoa, quanto arroz é necessário para 10 pessoas?", options: ["600 g", "650 g", "700 g", "750 g", "900 g"], answer: 3, explanation: "São 450 ÷ 6 = 75 g por pessoa. Para 10 pessoas, 75 × 10 = 750 g." },
-  { id: "hum-2", area: "Ciências Humanas", topic: "Fontes históricas", text: "Um historiador compara uma propaganda de uma fábrica, um relato de um operário e registros de salários do mesmo período. Essa comparação é importante porque:", options: ["todas as fontes necessariamente relatam os mesmos fatos.", "apenas documentos com números têm valor histórico.", "fontes antigas não precisam ser contextualizadas.", "o relato individual anula qualquer documento escrito.", "fontes distintas permitem confrontar perspectivas e contextualizar informações."], answer: 4, explanation: "Cruzar fontes ajuda a reconhecer pontos de vista, interesses e limites dos registros, em vez de tomar uma única versão como completa." },
-  { id: "nat-2", area: "Ciências da Natureza", topic: "Concentração de soluções", text: "Uma solução contém 20 g de sal em 500 mL. Adiciona-se água até atingir 1 litro, sem perda de sal. Qual é a concentração final em g/L?", options: ["10 g/L", "20 g/L", "40 g/L", "50 g/L", "100 g/L"], answer: 1, explanation: "A massa de sal permanece em 20 g e o volume final é 1 L. Portanto, a concentração é 20 g/L." },
-  { id: "ling-3", area: "Linguagens", topic: "Coesão textual", text: "Leia: ‘O projeto recebeu poucos recursos; ainda assim, a equipe concluiu a pesquisa.’ A expressão ‘ainda assim’ estabelece uma relação de:", options: ["causa direta.", "exemplificação.", "contraste com a expectativa criada.", "adição de fatos equivalentes.", "conclusão inevitável."], answer: 2, explanation: "A escassez de recursos poderia dificultar a conclusão. ‘Ainda assim’ introduz um resultado contrário a essa expectativa." },
-  { id: "mat-3", area: "Matemática", topic: "Média aritmética", text: "Uma estudante resolveu 12, 18, 15 e 11 questões em quatro dias. Quantas precisa resolver no quinto dia para alcançar média de 15 questões por dia?", options: ["14", "15", "16", "18", "19"], answer: 4, explanation: "Para média 15 em cinco dias, o total deve ser 75. Já foram resolvidas 56 questões, faltando 19." },
-  { id: "hum-3", area: "Ciências Humanas", topic: "Cidadania", text: "Moradores acompanham os gastos públicos e apresentam propostas em um conselho municipal. Essa atuação é um exemplo de:", options: ["participação social e controle das políticas públicas.", "substituição das eleições por decisões privadas.", "eliminação da responsabilidade do governo.", "restrição dos direitos políticos.", "exercício exclusivo de uma função judicial."], answer: 0, explanation: "Acompanhar gastos e participar de conselhos são formas de participação cidadã e controle social." },
-  { id: "nat-3", area: "Ciências da Natureza", topic: "Ecologia", text: "O lançamento de esgoto rico em nutrientes em uma lagoa pode provocar proliferação de algas. A decomposição dessa matéria orgânica pode causar a morte de peixes principalmente por:", options: ["aumento permanente da transparência da água.", "consumo de oxigênio dissolvido por decompositores.", "transformação da água doce em água salgada.", "interrupção de toda atividade bacteriana.", "eliminação imediata de todos os nutrientes."], answer: 1, explanation: "Na eutrofização, a decomposição pode consumir muito oxigênio dissolvido, prejudicando a respiração dos peixes." },
-];
+export const landingQuestions = challengeQuestions;
+export function getQuizQuestions(version: number): QuizQuestion[] {
+  return version === 1 ? legacyQuestions : version === 2 ? challengeQuestions : [];
+}
 
 export type QuizAttempt = { version: number; answers: (number | null)[] };
 export function parseQuizAttempt(value: unknown): QuizAttempt | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Partial<QuizAttempt>;
-  if (candidate.version !== QUIZ_VERSION || !Array.isArray(candidate.answers) || candidate.answers.length !== landingQuestions.length) return null;
-  if (!candidate.answers.every((answer, i) => answer === null || (Number.isInteger(answer) && answer >= 0 && answer < landingQuestions[i].options.length))) return null;
-  return { version: QUIZ_VERSION, answers: candidate.answers };
+  const questions = getQuizQuestions(candidate.version ?? 0);
+  if (!questions.length || !Array.isArray(candidate.answers) || candidate.answers.length !== questions.length) return null;
+  if (!candidate.answers.every((answer, i) => answer === null || (Number.isInteger(answer) && answer >= 0 && answer < questions[i].options.length))) return null;
+  return { version: candidate.version!, answers: candidate.answers };
 }
-export function evaluateQuiz(answers: (number | null)[]) {
-  const attempt = parseQuizAttempt({ version: QUIZ_VERSION, answers });
+export function evaluateQuiz(answers: (number | null)[], version = QUIZ_VERSION) {
+  const attempt = parseQuizAttempt({ version, answers });
   if (!attempt || attempt.answers.some(answer => answer === null)) return null;
+  const questions = getQuizQuestions(version);
   const areas = QUIZ_AREAS.map(area => {
-    const items = landingQuestions.map((question, index) => ({ question, index })).filter(item => item.question.area === area);
+    const items = questions.map((question, index) => ({ question, index })).filter(item => item.question.area === area);
     const correct = items.filter(({ question, index }) => question.answer === answers[index]).length;
     return { area, correct, total: items.length, reviewTopics: items.filter(({ question, index }) => question.answer !== answers[index]).map(({ question }) => question.topic) };
   });
-  return { correct: areas.reduce((sum, area) => sum + area.correct, 0), total: landingQuestions.length, areas };
+  return { correct: areas.reduce((sum, area) => sum + area.correct, 0), total: questions.length, areas };
 }

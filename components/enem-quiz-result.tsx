@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { landingQuestions, evaluateQuiz, parseQuizAttempt, QUIZ_STORAGE_KEY, type QuizAttempt } from "@/lib/enem/landing-quiz";
+import { getQuizQuestions, evaluateQuiz, parseQuizAttempt, QUIZ_STORAGE_KEY, type QuizAttempt } from "@/lib/enem/landing-quiz";
 import { QUIZ_CONTACT_KEY, quizContactSchema } from "@/lib/enem/quiz-contact";
+
+import { quizMessage } from "@/lib/enem/quiz-message";
 
 type Result = NonNullable<ReturnType<typeof evaluateQuiz>>;
 export function EnemQuizResult({ children }: { children: ReactNode }) {
@@ -20,13 +22,13 @@ export function EnemQuizResult({ children }: { children: ReactNode }) {
     const frame = requestAnimationFrame(() => {
       try {
         const saved = parseQuizAttempt(JSON.parse(sessionStorage.getItem(QUIZ_STORAGE_KEY) ?? "null"));
-        if (saved && evaluateQuiz(saved.answers)) {
+        if (saved && evaluateQuiz(saved.answers, saved.version)) {
           setAttempt(saved);
           const previous = JSON.parse(sessionStorage.getItem(QUIZ_CONTACT_KEY) ?? "null");
           const contact = quizContactSchema.safeParse(previous?.contact);
           if (contact.success) {
             setName(contact.data.name); setEmail(contact.data.email); setPhone(contact.data.phone);
-            if (previous.attempt === JSON.stringify(saved)) setResult(evaluateQuiz(saved.answers));
+            if (previous.attempt === JSON.stringify(saved)) setResult(evaluateQuiz(saved.answers, saved.version));
           }
         }
       } catch { /* Invalid or blocked storage does not fabricate a result. */ }
@@ -62,10 +64,12 @@ export function EnemQuizResult({ children }: { children: ReactNode }) {
       {message && <p role="alert">{message}</p>}
       <button className="enem-button" disabled={busy}>{busy ? "Salvando…" : "Ver meus acertos e o que revisar →"}</button>
     </form></section>;
+  const copy = quizMessage(result.correct);
+  const questions = getQuizQuestions(attempt.version);
   const priorities = result.areas.filter(area => area.correct < area.total).sort((a, b) => a.correct - b.correct);
-  return <><section className="enem-result-card"><span className="enem-kicker">SUA RETA FINAL COMEÇA AGORA</span><h1 ref={heading} tabIndex={-1}>{name.split(" ")[0]}, acreditamos no seu potencial.</h1><p>Transforme o que você descobriu no quiz em uma preparação com mais direção. Conheça os recursos para organizar sua semana e praticar onde precisa.</p><a href="#meu-resultado">Ver meu resultado gratuito ↓</a></section>{children}<section className="enem-result-card" id="meu-resultado"><span className="enem-kicker">SEU RESULTADO GRATUITO</span><h2>Confira seus acertos e pontos de atenção.</h2>
+  return <><section className="enem-result-card"><span className="enem-kicker">SUA RETA FINAL COMEÇA AGORA</span><h1 ref={heading} tabIndex={-1}>{name.split(" ")[0]}, {copy.title.charAt(0).toLowerCase() + copy.title.slice(1)}</h1><p>{copy.description}</p><p>{copy.next}</p><a className="enem-button" href="#matricula">{copy.cta}</a><p><a href="#meu-resultado">Ver meu resultado gratuito ↓</a></p></section>{children}<section className="enem-result-card" id="meu-resultado"><span className="enem-kicker">SEU RESULTADO GRATUITO</span><h2>Confira seus acertos e pontos de atenção.</h2>
     <div className="quiz-score"><div><strong>{result.correct}</strong><span>acertos</span></div><div><strong>{result.total - result.correct}</strong><span>erros</span></div><div><strong>{result.total}</strong><span>questões</span></div></div>
     <p>{priorities.length ? "Cada erro mostra uma oportunidade de revisar com mais foco. Comece pelos assuntos abaixo." : "Você acertou todas as questões! Amplie o treino com outros assuntos e situações de prova."}</p>
     <div className="quiz-area-results">{result.areas.map(area => <article key={area.area}><h2>{area.area}</h2><p><strong>{area.correct} de {area.total} acertos</strong></p><p>{area.reviewTopics.length ? `Revisar: ${area.reviewTopics.join(", ")}.` : "Todos os assuntos desta amostra respondidos corretamente."}</p></article>)}</div>
-    <div className="quiz-error-details"><h2>Entenda suas respostas</h2>{landingQuestions.map((question, index) => attempt.answers[index] !== question.answer ? <details key={question.id}><summary>Questão {index + 1} • Revisar {question.topic}</summary><p>{question.text}</p><p>Sua resposta: {question.options[attempt.answers[index]!]}</p><p><strong>Resposta correta: {String.fromCharCode(65 + question.answer)} — {question.options[question.answer]}</strong></p><p>{question.explanation}</p></details> : null)}</div><p className="enem-small">Diagnóstico de 12 questões autorais. Não calcula TRI nem prevê nota ou aprovação.</p></section></>;
+    <div className="quiz-error-details"><h2>{priorities.length ? "Entenda suas respostas" : "Próximos passos"}</h2>{!priorities.length && <p>Experimente outras habilidades, pratique com tempo marcado e avalie sua redação. Acertar esta amostra não dispensa a revisão nem demonstra domínio de toda a prova.</p>}{questions.map((question, index) => attempt.answers[index] !== question.answer ? <details key={question.id}><summary>Questão {index + 1} • Revisar {question.topic}</summary><p style={{ whiteSpace: "pre-line" }}>{question.text}</p><p>Sua resposta: {question.options[attempt.answers[index]!]}</p><p><strong>Resposta correta: {String.fromCharCode(65 + question.answer)} — {question.options[question.answer]}</strong></p><p>{question.explanation}</p>{question.source && <p className="enem-small">ENEM {question.source.year} • {question.source.application} • {question.source.booklet} • questão {question.source.number}. Resolução comentada da Nota Alvo.</p>}</details> : null)}</div><p className="enem-small">{attempt.version === 1 ? "Sondagem de 12 questões autorais." : "Desafio de 12 questões oficiais, com seleção e dificuldade editoriais. Uma amostra exigente, não uma avaliação de todo o ENEM."} Não calcula TRI nem prevê nota ou aprovação.</p></section></>;
 }

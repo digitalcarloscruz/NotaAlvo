@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   if (paidError) return NextResponse.json({ error: "Não foi possível verificar seus pedidos." }, { status: 503 });
   if (paid) return NextResponse.json({ url: "/app" });
   const attempt = parseQuizAttempt(await request.json().catch(() => null));
-  const result = attempt && evaluateQuiz(attempt.answers);
+  const result = attempt && evaluateQuiz(attempt.answers, attempt.version);
   if (!attempt || !result) return NextResponse.json({ error: "Conclua o quiz antes de continuar." }, { status: 422 });
   const attemptHash = createHash("sha256").update(JSON.stringify(attempt)).digest("hex");
   const id = randomUUID();

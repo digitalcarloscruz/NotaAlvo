@@ -212,6 +212,7 @@ body { min-width: 320px; }
 .enem-quiz progress::-moz-progress-bar { background: #527b3a; }
 .enem-question-title { font: 700 19px/1.55 Manrope, sans-serif; margin: 12px 0 24px; }
 .enem-question-title:focus { outline: none; }
+.enem-question-text { white-space: pre-line; font-size: 16px; line-height: 1.65; font-weight: 400; margin: 0 0 24px; overflow-wrap: anywhere; }
 .enem-options { display: grid; gap: 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
 .enem-option { display: flex; align-items: flex-start; gap: 12px; border: 1px solid #dfe5dc; border-radius: 10px; padding: 14px; font-size: 14px; line-height: 1.5; cursor: pointer; }
 .enem-option input { margin: 6px 0 0; accent-color: #386b3d; flex-shrink: 0; }

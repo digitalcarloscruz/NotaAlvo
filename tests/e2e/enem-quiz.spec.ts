@@ -1,4 +1,13 @@
 import { expect, test } from "@playwright/test";
+import { landingQuestions, evaluateQuiz, QUIZ_VERSION, QUIZ_STORAGE_KEY } from "../../lib/enem/landing-quiz";
+
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/billing/status", route => route.fulfill({ status: 401, json: { status: "unauthenticated" } }));
+  await page.route("**/api/quiz/contact", route => {
+    const { attempt } = route.request().postDataJSON();
+    return route.fulfill({ json: { result: evaluateQuiz(attempt.answers, attempt.version) } });
+  });
+});
 
 test("quiz exige uma resposta, retoma escolhas e abre a prévia", async ({ page }) => {
   await page.goto("/");
@@ -16,8 +25,15 @@ test("quiz exige uma resposta, retoma escolhas e abre a prévia", async ({ page 
     await page.getByRole("button", { name: index === 11 ? "Concluir e continuar →" : "Próxima →" }).click();
   }
   await expect(page).toHaveURL(/\/resultadodoquiz$/);
-  await expect(page.getByRole("heading", { name: "Áreas para olhar com mais atenção" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Já sou aluno →" })).toHaveAttribute("href", "https://app.notaalvo.com.br/entrar");
+  await expect(page.getByRole("heading", { name: "Seu resultado está pronto." })).toBeVisible();
+  await page.getByLabel("Seu nome").fill("Ana Teste");
+  await page.getByLabel("E-mail", { exact: true }).fill("ana@example.com");
+  await page.getByRole("button", { name: "Ver meus acertos e o que revisar →" }).click();
+  await expect(page.locator("#meu-resultado .quiz-score")).toBeVisible();
+  const details = page.locator(".quiz-error-details details").first();
+  await details.locator("summary").click();
+  await expect(details.getByText(/Resposta correta:/)).toBeVisible();
+  await expect(page.getByRole("link", { name: "Já sou aluno →" })).toHaveAttribute("href", "/entrar");
 });
 
 test("resultado sem tentativa completa permite voltar ao quiz", async ({ page }) => {
@@ -37,5 +53,22 @@ for (const width of [390, 1280]) {
     await expect(page.getByRole("radio")).toHaveCount(5);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`quiz-${width}.png`), fullPage: true });
+  });
+}
+
+for (const version of [1, QUIZ_VERSION]) {
+  test(`resultado perfeito da versão ${version} propõe o próximo desafio`, async ({ page }) => {
+    const answers = version === 1 ? [1,3,2,4,0,3,4,1,2,4,0,1] : landingQuestions.map(q => q.answer);
+    await page.addInitScript(({ key, attempt }) => sessionStorage.setItem(key, JSON.stringify(attempt)), { key: QUIZ_STORAGE_KEY, attempt: { version, answers } });
+    await page.goto("/resultadodoquiz");
+    await page.getByLabel("Seu nome").fill("Ana Teste");
+    await page.getByLabel("E-mail", { exact: true }).fill("ana@example.com");
+    await page.getByRole("button", { name: "Ver meus acertos e o que revisar →" }).click();
+    await expect(page.getByRole("link", { name: "Quero meu próximo desafio →" })).toHaveAttribute("href", "#matricula");
+    await expect(page.locator(".quiz-score strong").first()).toHaveText("12");
+    await expect(page.locator(".quiz-error-details details")).toHaveCount(0);
+    await expect(page.getByText(/Acertar esta amostra não dispensa/)).toBeVisible();
+    await page.reload();
+    await expect(page.locator(".quiz-score strong").first()).toHaveText("12");
   });
 }

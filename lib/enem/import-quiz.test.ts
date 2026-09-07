@@ -67,3 +67,11 @@ it("changes the first-week priorities according to actual quiz mistakes", () => 
   expect(math.mastery["MAT.PROBLEMAS"].score).toBeLessThan(nature.mastery["MAT.PROBLEMAS"].score);
   expect(math.plan[0].topicId).not.toBe(nature.plan[0].topicId);
 });
+
+it("importa respostas antigas com seus tópicos e gabaritos originais", () => {
+  const old = { version: 1, answers: [1,3,2,4,0,3,4,1,2,4,0,1] };
+  const state = importQuiz(createInitialState(now), "legacy", old, now);
+  expect(state.answers).toHaveLength(12);
+  expect(state.reviewQueue).toHaveLength(0);
+  expect(state.mastery["NAT.FISICA"].evidenceCount).toBe(1);
+});

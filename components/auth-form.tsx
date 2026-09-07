@@ -7,6 +7,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Brand } from "@/components/brand";
 import { useAuth } from "@/components/providers/auth-provider";
 
+import { QUIZ_CONTACT_KEY, quizContactSchema } from "@/lib/enem/quiz-contact";
+
 type ConfirmationError = "expired" | "invalid" | null;
 
 export function AuthForm({ initialMode, next, confirmationError }: { initialMode: "login" | "signup"; next: Route; confirmationError: ConfirmationError }) {
@@ -29,6 +31,18 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
   useEffect(() => {
     if (status === "authenticated") router.replace(next);
   }, [next, router, status]);
+
+  useEffect(() => {
+    if (next !== "/resultadodoquiz") return;
+    const frame = requestAnimationFrame(() => {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(QUIZ_CONTACT_KEY) ?? "null");
+        const contact = quizContactSchema.safeParse(saved?.contact);
+        if (contact.success) { setName(contact.data.name); setEmail(contact.data.email); }
+      } catch { /* Manual entry stays available. */ }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [next]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

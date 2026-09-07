@@ -55,7 +55,7 @@ export function EnemLandingQuiz() {
       <h2>O que você já sabe?<br />Vamos descobrir.</h2>
       <p>Responda 12 questões de Linguagens, Matemática, Humanas e Natureza. Escolha uma alternativa por questão, sem consultar o gabarito.</p>
       <ul><li>Sem cadastro para responder</li><li>Você pode voltar e revisar suas escolhas</li><li>Questões autorais, com cinco alternativas</li></ul>
-      <p className="enem-quiz-disclosure">Ao concluir, você segue para uma página com uma prévia do diagnóstico e a apresentação do curso. As condições de acesso ao resultado completo serão informadas antes de qualquer compra.</p>
+      <p className="enem-quiz-disclosure">Ao concluir, informe seu nome e e-mail para ver gratuitamente seus acertos, erros e assuntos para revisar. Telefone opcional. Depois, você poderá conhecer o ENEM Express, sem obrigação de compra.</p>
       <button type="button" className="enem-button" disabled={!ready} onClick={() => setStarted(true)}>{!ready ? "Preparando quiz…" : answered > 0 ? "Retomar meu quiz →" : "Começar meu quiz →"}</button>
       {answered > 0 && <p className="enem-small">{answered} de 12 respostas salvas nesta aba.</p>}
     </div> : <div>

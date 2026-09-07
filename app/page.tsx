@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return <div className="enem-landing">
-    <header className="enem-nav"><Brand /><nav aria-label="Navegação pública"><a href="#como-funciona">Como funciona</a><a href="#quiz">Fazer o quiz</a></nav><Link className="enem-login" href="https://app.notaalvo.com.br/entrar">Já sou aluno →</Link></header>
+    <header className="enem-nav"><Brand /><nav aria-label="Navegação pública"><a href="#como-funciona">Como funciona</a><a href="#quiz">Fazer o quiz</a></nav><Link className="enem-login" href="/entrar">Já sou aluno →</Link></header>
     <main>
       <section className="enem-hero">
         <div className="enem-hero-copy"><span className="enem-kicker">NOTA ALVO • RETA FINAL DO ENEM</span><h1>Seu próximo acerto começa com o que você <em>precisa revisar.</em></h1><p>Você está estudando o que mais precisa? Teste seus conhecimentos e encontre um ponto de partida para organizar a revisão até o ENEM.</p><p>Uma plataforma de estudos com inteligência artificial para ajudar você a identificar dúvidas, praticar e organizar a preparação para o ENEM.</p><a className="enem-button" href="#quiz">Testar meus conhecimentos →</a><div className="enem-hero-facts"><span><b>12</b> questões autorais</span><span><b>4</b> áreas do conhecimento</span><span><b>Seu ritmo</b> sem cronômetro</span></div></div>

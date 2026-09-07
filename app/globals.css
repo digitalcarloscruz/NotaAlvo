@@ -293,3 +293,13 @@ body { min-width: 320px; }
 .legal-content h2 { margin-top: 32px; font-size: 22px; }
 .legal-content a { color: #173c2c; text-decoration: underline; }
 .legal-date { color: #526458; font-size: 14px; }
+
+.quiz-contact-card { max-width: 680px; margin-inline: auto; }
+.quiz-contact-card .auth-form { margin-top: 24px; }
+.quiz-score { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 28px 0; }
+.quiz-score > div { display: grid; gap: 4px; padding: 20px 12px; background: #edf4e9; border-radius: 16px; text-align: center; }
+.quiz-score strong { font-size: clamp(28px, 6vw, 44px); color: #173c2c; }
+.quiz-area-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.quiz-area-results article { padding: 18px; border: 1px solid #dfe5dc; border-radius: 14px; }
+.quiz-area-results h2 { font-size: 18px; }
+@media (max-width: 600px) { .quiz-area-results { grid-template-columns: 1fr; } }

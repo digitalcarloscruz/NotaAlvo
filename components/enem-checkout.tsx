@@ -40,7 +40,7 @@ export function EnemCheckout({ enabled }: { enabled: boolean }) {
     } catch { setMessage("Não foi possível abrir o pagamento. Tente novamente em instantes."); }
     finally { setBusy(false); }
   }
-  if (paymentStatus === "paid") return <div><p role="status">Pagamento confirmado! Seu ENEM Express está liberado.</p><a className="enem-button" href="https://app.notaalvo.com.br/entrar">Acessar meu ENEM Express →</a></div>;
+  if (paymentStatus === "paid") return <div><p role="status">Pagamento confirmado! Seu ENEM Express está liberado.</p><a className="enem-button" href="/entrar">Acessar meu ENEM Express →</a></div>;
   if (paymentStatus === "revoked") return <p role="status">O acesso deste pedido foi suspenso por estorno ou contestação. Entre em contato com o suporte.</p>;
   return <div>{paymentStatus === "pending" && <p role="status">Aguardando a confirmação do pagamento. Se você já pagou, aguarde a atualização.</p>}<p><strong>R$ 97,00</strong> • pagamento único</p><p className="enem-small">Pagamento pelo Asaas. Sem assinatura recorrente.</p><button className="enem-button" disabled={!enabled || busy} onClick={checkout}>{busy ? "Abrindo pagamento…" : enabled ? "Continuar para matrícula →" : "Matrículas em breve"}</button>{message && <p role="alert">{message}</p>}</div>;
 }

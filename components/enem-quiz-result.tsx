@@ -1,28 +1,71 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { evaluateQuiz, parseQuizAttempt, QUIZ_STORAGE_KEY } from "@/lib/enem/landing-quiz";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { evaluateQuiz, parseQuizAttempt, QUIZ_STORAGE_KEY, type QuizAttempt } from "@/lib/enem/landing-quiz";
+import { QUIZ_CONTACT_KEY, quizContactSchema } from "@/lib/enem/quiz-contact";
 
 type Result = NonNullable<ReturnType<typeof evaluateQuiz>>;
-export function EnemQuizResult() {
+export function EnemQuizResult({ children }: { children: ReactNode }) {
+  const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [ready, setReady] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       try {
-        const attempt = parseQuizAttempt(JSON.parse(sessionStorage.getItem(QUIZ_STORAGE_KEY) ?? "null"));
-        if (attempt) setResult(evaluateQuiz(attempt.answers));
-      } catch { /* Sem tentativa válida, oferecemos voltar ao quiz. */ }
+        const saved = parseQuizAttempt(JSON.parse(sessionStorage.getItem(QUIZ_STORAGE_KEY) ?? "null"));
+        if (saved && evaluateQuiz(saved.answers)) {
+          setAttempt(saved);
+          const previous = JSON.parse(sessionStorage.getItem(QUIZ_CONTACT_KEY) ?? "null");
+          const contact = quizContactSchema.safeParse(previous?.contact);
+          if (contact.success) {
+            setName(contact.data.name); setEmail(contact.data.email); setPhone(contact.data.phone);
+            if (previous.attempt === JSON.stringify(saved)) setResult(evaluateQuiz(saved.answers));
+          }
+        }
+      } catch { /* Invalid or blocked storage does not fabricate a result. */ }
       setReady(true);
     });
     return () => cancelAnimationFrame(frame);
   }, []);
-  if (!ready) return <section className="enem-result-card" aria-live="polite"><p>Preparando sua prévia…</p></section>;
-  if (!result) return <section className="enem-result-card"><h1>Seu diagnóstico começa no quiz.</h1><p>Conclua as 12 questões nesta mesma aba para ver a prévia das suas respostas.</p><Link className="enem-button" href="/#quiz">Ir para o quiz →</Link></section>;
+  useEffect(() => { if (result) heading.current?.focus(); }, [result]);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const contact = quizContactSchema.safeParse({ name, email, phone });
+    if (!contact.success) { setMessage(contact.error.issues[0].message); return; }
+    setBusy(true); setMessage("");
+    try {
+      const response = await fetch("/api/quiz/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contact: contact.data, attempt, website: new FormData(event.currentTarget).get("website") }) });
+      const data = await response.json();
+      if (!response.ok) { setMessage(data.error ?? "Não foi possível continuar. Tente novamente."); return; }
+      try { sessionStorage.setItem(QUIZ_CONTACT_KEY, JSON.stringify({ contact: contact.data, attempt: JSON.stringify(attempt) })); } catch { /* Still reveal the saved result if local storage is full. */ }
+      setName(contact.data.name);
+      setResult(data.result);
+    } catch { setMessage("Não foi possível conectar. Confira sua conexão e tente novamente."); }
+    finally { setBusy(false); }
+  }
+  if (!ready) return <section className="enem-result-card" aria-live="polite"><p>Preparando seu resultado…</p></section>;
+  if (!attempt) return <section className="enem-result-card"><h1>Seu diagnóstico começa no quiz.</h1><p>Conclua as 12 questões nesta mesma aba para ver suas respostas.</p><Link className="enem-button" href="/#quiz">Ir para o quiz →</Link></section>;
+  if (!result) return <section className="enem-result-card quiz-contact-card"><span className="enem-kicker">12 QUESTÕES CONCLUÍDAS</span><h1>Seu resultado está pronto.</h1><p>Informe seu nome e e-mail para ver seus acertos, erros e os assuntos que merecem atenção. É gratuito e não exige cartão.</p>
+    <form className="auth-form" onSubmit={submit}>
+      <label>Seu nome<input autoComplete="name" value={name} onChange={e => setName(e.target.value)} required minLength={2} maxLength={120} /></label>
+      <label>E-mail<input type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required maxLength={254} /></label>
+      <label>Telefone <span className="enem-small">(opcional)</span><input type="tel" autoComplete="tel" value={phone} onChange={e => setPhone(e.target.value)} maxLength={24} /></label>
+      <div hidden aria-hidden="true"><label>Site<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
+      <p className="enem-small">Vamos registrar seus dados e as respostas para identificar seu diagnóstico e facilitar o atendimento. Isso não cria uma conta nem autoriza mensagens promocionais. <Link href="/privacidade">Veja a Política de Privacidade.</Link></p>
+      {message && <p role="alert">{message}</p>}
+      <button className="enem-button" disabled={busy}>{busy ? "Salvando…" : "Ver meus acertos e o que revisar →"}</button>
+    </form></section>;
   const priorities = result.areas.filter(area => area.correct < area.total).sort((a, b) => a.correct - b.correct);
-  return <>
-    <section className="enem-result-card"><span className="enem-kicker">QUIZ CONCLUÍDO • SUA PRÉVIA</span><h1>{priorities.length ? "Você já tem um ponto de partida para revisar." : "Você acertou toda esta amostra. Continue ampliando o treino."}</h1><p>Seu quiz passou pelas quatro áreas do ENEM. {priorities.length ? "As respostas indicam assuntos que vale retomar antes de avançar." : "Esse resultado é um bom sinal nos assuntos testados, mas não mede todo o conteúdo da prova."}</p><div className="enem-result-priorities"><h2>{priorities.length ? "Áreas para olhar com mais atenção" : "Seu próximo desafio"}</h2>{priorities.length ? <ul>{priorities.map(area => <li key={area.area}>{area.area}</li>)}</ul> : <p>Pratique com textos mais longos, novos conteúdos e situações de prova.</p>}</div><p className="enem-small">Esta é uma prévia baseada em 12 questões autorais. Não é nota TRI, avaliação de redação ou previsão de aprovação.</p></section>
-    <section className="enem-result-next"><span className="enem-kicker">O QUE FAZER COM ESSA INFORMAÇÃO</span><h2>Transforme a dúvida em uma próxima ação.</h2><div className="enem-feature-grid"><article><span>01</span><h3>Retome o conceito</h3><p>Antes de repetir exercícios, procure entender o raciocínio que ficou faltando.</p></article><article><span>02</span><h3>Resolva outra questão</h3><p>Verifique se consegue aplicar o mesmo conteúdo em um contexto diferente.</p></article><article><span>03</span><h3>Volte ao assunto</h3><p>Distribua a revisão na sua rotina e acompanhe a evolução ao longo dos dias.</p></article></div></section>
-  </>;
+  return <><section className="enem-result-card"><span className="enem-kicker">SEU RESULTADO</span><h1 ref={heading} tabIndex={-1}>{name.split(" ")[0]}, acreditamos no seu potencial.</h1>
+    <div className="quiz-score"><div><strong>{result.correct}</strong><span>acertos</span></div><div><strong>{result.total - result.correct}</strong><span>erros</span></div><div><strong>{result.total}</strong><span>questões</span></div></div>
+    <p>{priorities.length ? "Cada erro mostra uma oportunidade de revisar com mais foco. Comece pelos assuntos abaixo." : "Você acertou todas as questões! Amplie o treino com outros assuntos e situações de prova."}</p>
+    <div className="quiz-area-results">{result.areas.map(area => <article key={area.area}><h2>{area.area}</h2><p><strong>{area.correct} de {area.total} acertos</strong></p><p>{area.reviewTopics.length ? `Revisar: ${area.reviewTopics.join(", ")}.` : "Todos os assuntos desta amostra respondidos corretamente."}</p></article>)}</div>
+    <p className="enem-small">Diagnóstico de 12 questões autorais. Não calcula TRI nem prevê nota ou aprovação.</p></section>{children}</>;
 }

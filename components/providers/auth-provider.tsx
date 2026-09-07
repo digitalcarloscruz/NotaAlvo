@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { friendlyAuthError } from "@/lib/auth/error-message";
 import { authCallbackUrl } from "@/lib/auth/redirect";
 
 type AuthResult = { ok: true; needsConfirmation?: boolean } | { ok: false; message: string };
@@ -28,14 +29,6 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function friendlyMessage(message: string) {
-  if (/invalid login credentials/i.test(message)) return "E-mail ou senha incorretos.";
-  if (/email not confirmed/i.test(message)) return "Confirme seu e-mail antes de entrar.";
-  if (/already registered|already been registered/i.test(message)) return "Este e-mail já possui uma conta.";
-  if (/password should be at least/i.test(message)) return "A senha precisa ter pelo menos 8 caracteres.";
-  if (/rate limit|only request this after/i.test(message)) return "Muitas tentativas. Aguarde um pouco e tente novamente.";
-  return "Não foi possível concluir agora. Tente novamente.";
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = useMemo(() => createClient(), []);
@@ -83,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) return { ok: false, message: "A conexão com o Supabase não está configurada." };
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return error ? { ok: false, message: friendlyMessage(error.message) } : { ok: true };
+      return error ? { ok: false, message: friendlyAuthError(error) } : { ok: true };
     } catch {
       return { ok: false, message: "Não foi possível conectar ao serviço de autenticação." };
     }
@@ -100,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           emailRedirectTo: authCallbackUrl(window.location.origin, next),
         },
       });
-      if (error) return { ok: false, message: friendlyMessage(error.message) };
+      if (error) return { ok: false, message: friendlyAuthError(error) };
       return { ok: true, needsConfirmation: !data.session };
     } catch {
       return { ok: false, message: "Não foi possível conectar ao serviço de autenticação." };
@@ -115,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         options: { emailRedirectTo: authCallbackUrl(window.location.origin, next) },
       });
-      return error ? { ok: false, message: friendlyMessage(error.message) } : { ok: true };
+      return error ? { ok: false, message: friendlyAuthError(error) } : { ok: true };
     } catch {
       return { ok: false, message: "Não foi possível conectar ao serviço de autenticação." };
     }

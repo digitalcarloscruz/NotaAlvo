@@ -30,8 +30,9 @@ test("quiz exige uma resposta, retoma escolhas e abre a prévia", async ({ page 
   await page.getByLabel("E-mail", { exact: true }).fill("ana@example.com");
   await page.getByRole("button", { name: "Ver meus acertos e o que revisar →" }).click();
   await expect(page.locator("#meu-resultado .quiz-score")).toBeVisible();
-  const details = page.locator(".quiz-error-details details").first();
-  await details.locator("summary").click();
+  const details = page.locator(".quiz-answer-preview").first();
+  await expect(page.locator(".quiz-answer-preview")).toHaveCount(2);
+  await expect(page.getByRole("link", { name: "Fazer matrícula →", exact: true })).toHaveAttribute("href", "/matricula");
   await expect(details.getByText(/Resposta correta:/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Já sou aluno →" })).toHaveAttribute("href", "/entrar");
 });
@@ -66,7 +67,7 @@ for (const version of [1, QUIZ_VERSION]) {
     await page.getByRole("button", { name: "Ver meus acertos e o que revisar →" }).click();
     await expect(page.getByRole("link", { name: "Quero meu próximo desafio →" })).toHaveAttribute("href", "#matricula");
     await expect(page.locator(".quiz-score strong").first()).toHaveText("12");
-    await expect(page.locator(".quiz-error-details details")).toHaveCount(0);
+    await expect(page.locator(".quiz-answer-preview")).toHaveCount(0);
     await expect(page.getByText(/Acertar esta amostra não dispensa/)).toBeVisible();
     await page.reload();
     await expect(page.locator(".quiz-score strong").first()).toHaveText("12");

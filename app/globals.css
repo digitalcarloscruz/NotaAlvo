@@ -282,3 +282,14 @@ body { min-width: 320px; }
   .enem-result-priorities { padding: 18px; }
   .enem-course-preview { padding: 24px; }
 }
+
+/* Public company information and legal pages. */
+.public-footer { align-items: flex-start; line-height: 1.7; }
+.public-footer nav { display: flex; flex-direction: column; gap: 8px; }
+.public-footer a:not(.brand) { text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.public-footer-note { flex-basis: 100%; margin: 0; }
+.legal-content { max-width: 850px; margin: 0 auto; padding: 48px 24px 72px; line-height: 1.8; overflow-wrap: anywhere; }
+.legal-content h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.2; }
+.legal-content h2 { margin-top: 32px; font-size: 22px; }
+.legal-content a { color: #173c2c; text-decoration: underline; }
+.legal-date { color: #526458; font-size: 14px; }

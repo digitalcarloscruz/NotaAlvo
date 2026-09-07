@@ -60,7 +60,7 @@ Revisões vencidas e lacunas prioritárias geram uma tarefa com objetivo, duraç
 
 ## Implementação local realizada após a auditoria
 
-- Recuperação autenticada do quiz pelo e-mail confirmado; importação idempotente e preservação do histórico. O quiz não adiciona XP de estudo.
+- Recuperação autenticada do quiz pelo pedido Asaas vinculado ao ID da conta (sem associação automática por e-mail); importação idempotente e preservação do histórico. O quiz não adiciona XP de estudo.
 - Onboarding contextualizado em ENEM, sem repetir diagnóstico já importado.
 - Prioridade calculada por função compartilhada entre cliente e API; estados locais e tabelas de evidências ainda são representações distintas, e não uma migração completa para estado exclusivamente servidor.
 - Agenda ordenada, horário por período, orçamento semanal respeitado e estudo mesmo com um dia disponível.
@@ -72,3 +72,12 @@ Revisões vencidas e lacunas prioritárias geram uma tarefa com objetivo, duraç
 Acervo verificado por consultas somente leitura: 2.553 questões oficiais ENEM publicadas/validadas. Filtros de disciplina retornaram Linguagens 725, Matemática 433, Humanas 630 e Natureza 549. Os demais registros usam outras classificações e não foram reclassificados automaticamente. A amostra de comentários oficiais continha somente gabarito e aviso de curadoria pendente; não equivale a resolução comentada validada.
 
 Validação: suíte completa de 54 testes aprovada antes da adição do teste SQL; teste adicional da proteção de revisão também aprovado (55 no total), build e TypeScript aprovados. Não houve pagamento de teste, alteração remota no acervo, aplicação remota da nova migration nem publicação nesta etapa. Validação ponta a ponta autenticada e eficácia pedagógica ainda precisam ser acompanhadas após implantação.
+
+## Cadastro e pagamento sem confirmação de e-mail
+
+- Na matrícula: nome, e-mail, senha e confirmação de senha → sessão autenticada → `/matricula` → checkout Asaas automático. Acesso depende do pagamento confirmado pelo servidor.
+- O botão de nova tentativa reaproveita o pedido conforme as proteções existentes; não faz nova cobrança automática após falha ambígua. Uma conta com pedido pago segue para `/app`.
+- Publicar o código antes de desativar **Confirm email** em Supabase → Authentication → Sign In / Providers → Email. `supabase/config.toml` desativa a confirmação local; esse arquivo sozinho não altera o projeto hospedado.
+- Não confirmar em massa contas antigas: cadastros pendentes anteriores podem ainda precisar do link já enviado.
+- Validar com novo cadastro: senhas divergentes não enviam cadastro; senhas iguais criam sessão sem e-mail de confirmação; Asaas abre e o pedido pertence ao usuário; cancelamento não libera acesso; pagamento confirmado libera.
+- Quiz importado apenas do pedido do próprio usuário. Digitar o e-mail de um contato existente não dá acesso ao quiz desse contato.

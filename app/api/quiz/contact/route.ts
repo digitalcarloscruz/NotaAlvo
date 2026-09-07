@@ -32,8 +32,9 @@ export async function GET() {
   const admin = createAdminClient();
   const auth = session && await session.auth.getUser();
   const user = auth?.data.user;
-  if (!user?.email || !user.email_confirmed_at || !admin) return NextResponse.json({ error: "Confirme seu e-mail para recuperar o quiz." }, { status: 401 });
-  const { data, error } = await admin.from("enem_quiz_contacts").select("id,attempt").eq("email", user.email.toLowerCase()).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (!user || !admin) return NextResponse.json({ error: "Entre na sua conta para recuperar o quiz." }, { status: 401 });
+  // Email is self-declared when signup confirmation is disabled. Never claim a lead by email.
+  const { data, error } = await admin.from("asaas_orders").select("id,attempt").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
   if (error) return NextResponse.json({ error: "Não foi possível recuperar o quiz." }, { status: 503 });
   return NextResponse.json({ data }, { headers: { "Cache-Control": "private, no-store" } });
 }

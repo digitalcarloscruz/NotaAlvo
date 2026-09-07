@@ -14,11 +14,13 @@ type ConfirmationError = "expired" | "invalid" | null;
 export function AuthForm({ initialMode, next, confirmationError }: { initialMode: "login" | "signup"; next: Route; confirmationError: ConfirmationError }) {
   const router = useRouter();
   const { status, signIn, signUp, resendConfirmation } = useAuth();
-  const isEnrollment = next.split("#")[0] === "/resultadodoquiz";
+  const isEnrollment = ["/resultadodoquiz", "/matricula"].includes(next.split("#")[0]);
+  const destination = isEnrollment ? "/matricula" : next;
   const [mode, setMode] = useState(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(
     confirmationError === "expired"
@@ -30,11 +32,11 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (status === "authenticated") router.replace(next);
-  }, [next, router, status]);
+    if (status === "authenticated") router.replace(destination);
+  }, [destination, router, status]);
 
   useEffect(() => {
-    if (next.split("#")[0] !== "/resultadodoquiz") return;
+    if (!isEnrollment) return;
     const frame = requestAnimationFrame(() => {
       try {
         const saved = JSON.parse(sessionStorage.getItem(QUIZ_CONTACT_KEY) ?? "null");
@@ -43,14 +45,19 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
       } catch { /* Manual entry stays available. */ }
     });
     return () => cancelAnimationFrame(frame);
-  }, [next]);
+  }, [isEnrollment]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (mode === "signup" && password !== confirmPassword) {
+      setSuccess(false);
+      setMessage("As senhas não coincidem. Digite a mesma senha nos dois campos.");
+      return;
+    }
     setBusy(true);
     setMessage("");
     setSuccess(false);
-    const result = mode === "login" ? await signIn(email, password) : await signUp(name.trim(), email, password, next);
+    const result = mode === "login" ? await signIn(email, password) : await signUp(name.trim(), email.trim(), password, destination);
     setBusy(false);
     if (!result.ok) {
       setMessage(result.message);
@@ -61,7 +68,7 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
       setMessage("Cadastro criado. Enviamos um link de confirmação para seu e-mail.");
       return;
     }
-    router.replace(next);
+    router.replace(destination);
   }
 
   async function resend() {
@@ -90,7 +97,7 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
         <div className="auth-copy">
           <p className="eyebrow">{isEnrollment ? "MATRÍCULA • 1. CONTA → 2. PAGAMENTO → 3. ACESSO" : "SUA JORNADA CONTINUA"}</p>
           <h1>{mode === "login" ? "Entre na Nota Alvo" : "Crie sua conta na Nota Alvo"}</h1>
-          <p>{isEnrollment ? "Primeiro, identifique sua conta. Depois você volta à matrícula para pagar R$ 97 pelo Asaas. Criar a conta é gratuito e não gera cobrança." : mode === "login" ? "Seu plano, evolução e revisões ficam sincronizados." : "Comece pelo diagnóstico e receba um plano adaptado à sua rotina."}</p>
+          <p>{isEnrollment ? "Crie sua conta com nome, e-mail e senha. Na próxima tela, o pagamento de R$ 97 será aberto no Asaas. Criar a conta é gratuito e não gera cobrança." : mode === "login" ? "Seu plano, evolução e revisões ficam sincronizados." : "Comece pelo diagnóstico e receba um plano adaptado à sua rotina."}</p>
         </div>
         <div className="auth-tabs" role="tablist" aria-label="Acesso à conta">
           <button className={mode === "login" ? "active" : ""} type="button" onClick={() => { setMode("login"); setMessage(""); }}>Entrar</button>
@@ -100,6 +107,7 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
           {mode === "signup" && <label>Nome completo<input autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} /></label>}
           <label>E-mail<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label>Senha<input type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} /></label>
+          {mode === "signup" && <label>Confirmar senha<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={8} /></label>}
           {message && <p className={`auth-message ${success ? "success" : "error"}`} role="status">{message}</p>}
           {confirmationError && (
             <button className="auth-resend" type="button" onClick={resend} disabled={busy || status === "loading" || status === "unavailable"}>
@@ -107,7 +115,7 @@ export function AuthForm({ initialMode, next, confirmationError }: { initialMode
             </button>
           )}
           <button className="primary-button auth-submit" type="submit" disabled={busy || status === "loading" || status === "unavailable"}>
-            {busy ? "Aguarde…" : mode === "login" ? "Entrar →" : "Criar minha conta →"}
+            {busy ? "Aguarde…" : mode === "login" ? "Entrar →" : isEnrollment ? "Criar conta e ir para pagamento →" : "Criar minha conta →"}
           </button>
         </form>
         <div className="auth-demo"><span>Quer conhecer antes?</span><Link href="/app">Explorar modo demonstração</Link></div>

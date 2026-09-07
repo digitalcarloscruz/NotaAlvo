@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   if (!auth.user) return NextResponse.json({ error: "Entre ou crie sua conta para continuar." }, { status: 401 });
   const { data: paid, error: paidError } = await admin.from("asaas_orders").select("id").eq("user_id", auth.user.id).eq("product_name", product).eq("status", "paid").limit(1).maybeSingle();
   if (paidError) return NextResponse.json({ error: "Não foi possível verificar seus pedidos." }, { status: 503 });
-  if (paid) return NextResponse.json({ error: "Você já possui o ENEM Express. Acesse sua conta." }, { status: 409 });
+  if (paid) return NextResponse.json({ url: "/app" });
   const attempt = parseQuizAttempt(await request.json().catch(() => null));
   const result = attempt && evaluateQuiz(attempt.answers);
   if (!attempt || !result) return NextResponse.json({ error: "Conclua o quiz antes de continuar." }, { status: 422 });

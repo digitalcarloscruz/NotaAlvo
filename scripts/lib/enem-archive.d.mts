@@ -12,7 +12,7 @@ export type ParsedArchiveItem = {
   contentHash: string;
   extractionConfidence: number;
   extractionStatus: "ready" | "needs_review";
-  metadata: { referencesVisual: boolean; sourceDocumentHash: string };
+  metadata: { referencesVisual: boolean; missingContext: boolean; corruptedText: boolean; sharedContext: boolean; parserVersion: number; sourceDocumentHash: string };
 };
 
 export function digest(value: string | Uint8Array): string;

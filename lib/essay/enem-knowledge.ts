@@ -1,3 +1,4 @@
+import { CONNECTOR_LESSONS } from "./study-content";
 export const ENEM_CORPUS_SOURCE = {
   title: "Coletânea de redações nota 1000 do Enem",
   publisher: "Exemplos publicados em cartilhas e materiais oficiais do Inep",
@@ -13,14 +14,7 @@ export const ENEM_METHOD = [
   { id: "revise", step: "5", title: "Revise pelas competências", duration: "10 min", description: "Cheque norma-padrão, atendimento ao tema, organização, coesão e intervenção. Troque repetições; não enfeite o texto artificialmente." },
 ] as const;
 
-export const CONNECTOR_FAMILIES = [
-  { purpose: "Abrir argumento", examples: ["Em primeiro plano", "Inicialmente", "Sob essa perspectiva"] },
-  { purpose: "Adicionar", examples: ["Além disso", "Ademais", "Somado a isso"] },
-  { purpose: "Contrapor", examples: ["Entretanto", "Contudo", "Apesar disso"] },
-  { purpose: "Explicar", examples: ["Isso ocorre porque", "Uma vez que", "Nesse contexto"] },
-  { purpose: "Concluir efeito", examples: ["Dessa forma", "Desse modo", "Por conseguinte"] },
-  { purpose: "Intervir", examples: ["Portanto", "Logo, cabe a", "Torna-se necessário, pois"] },
-] as const;
+export const CONNECTOR_FAMILIES = CONNECTOR_LESSONS.map(([purpose, examples, example, tip]) => ({ purpose, examples, example, tip }));
 
 export const REFERENCE_PATTERNS = [
   { title: "Marco jurídico", pattern: "norma → direito garantido → distância entre previsão e realidade", warning: "Confirme artigo e conteúdo; uma citação imprecisa enfraquece o argumento." },

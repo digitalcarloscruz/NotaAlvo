@@ -86,7 +86,9 @@ function cleanPart(value) {
   return normalizeText(value)
     .replace(/\n?\s*\f\s*/g, "\n")
     .replace(/\n\s*(?:\*?AMARELO\d*|ENEM\s*\d{4}|LC|CH|CN|MT)\s*[-–—]?\s*\d*\s*$/gimu, "")
-    .replace(/\s+/g, " ")
+    .replace(/__ENEM_PAGE_\d+__/g, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
@@ -117,15 +119,28 @@ export function parseQuestions(pages, { year, day, answers = new Map(), document
     }
     markers = sequential;
   }
+  // Explicit shared-text headings delimit context independently of question blocks.
+  // Never guess a missing passage from the wording of the question.
+  const shared = [...text.matchAll(/(?:^|\n)[ \t]*((?:[^\n]*(?:texto|textos|informaç[õo]es)[^\n]*quest[õo]es[ \t]+)(\d{1,3})[ \t]*(e|a|até|–|-)[ \t]*(\d{1,3})[^\n]*)/gimu)].flatMap(match => {
+    const next = markers.find(marker => marker.start > match.index);
+    if (!next) return [];
+    const first = Number(match[2]), last = Number(match[4]);
+    if (first > last || last - first > 20) return [];
+    const passage = cleanPart(text.slice(match.index, next.start));
+    return [{ start: match.index, end: next.start, first, last, pair: match[3] === "e", passage }];
+  });
   const occurrences = new Map();
   const items = [];
 
   markers.forEach((marker, index) => {
-    const blockEnd = markers[index + 1]?.start ?? text.length;
+    const nextMarker = markers[index + 1]?.start ?? text.length;
+    const blockEnd = shared.find(context => context.start > marker.end && context.start < nextMarker)?.start ?? nextMarker;
     const block = text.slice(marker.end, blockEnd);
     const sequence = optionSequence(block);
     if (!sequence) return;
-    const statement = cleanPart(block.slice(0, sequence[0].start));
+    const prompt = cleanPart(block.slice(0, sequence[0].start));
+    const context = shared.find(context => context.end <= marker.start + 1 && marker.number >= context.first && marker.number <= context.last && (!context.pair || marker.number === context.first || marker.number === context.last));
+    const statement = context ? `${context.passage}\n\n${prompt}` : prompt;
     const options = sequence.map((option, optionIndex) => cleanPart(
       block.slice(option.end, sequence[optionIndex + 1]?.start ?? block.length),
     ));
@@ -143,7 +158,9 @@ export function parseQuestions(pages, { year, day, answers = new Map(), document
       ?? answers.get(`${marker.number}:common`)
       ?? null;
     const referencesVisual = /\b(?:figura|imagem|gráfico|mapa|tabela|charge|tirinha|cartum)\b/i.test(statement);
-    const confidence = answer ? (referencesVisual ? 0.72 : 0.92) : 0.58;
+    const missingContext = !context && /(?:texto|textos|trecho|passagem|informaç[õo]es)\s+(?:anterior(?:es)?|acima|a seguir)|(?:segundo|conforme|considerando)\s+(?:o\s+)?(?:mesmo\s+)?texto|(?:nesse|neste)\s+texto/i.test(prompt) && prompt.length < 400;
+    const corruptedText = /[\x00-\x08\x0B\x0E-\x1F\uFFFD]/.test(statement + options.join(" "));
+    const confidence = answer ? (referencesVisual || missingContext || corruptedText ? 0.72 : 0.92) : 0.58;
     const rawText = cleanPart(block);
     items.push({
       year,
@@ -159,7 +176,7 @@ export function parseQuestions(pages, { year, day, answers = new Map(), document
       contentHash: digest(`${year}|${day ?? 0}|${marker.number}|${languageVariant}|${statement}|${options.join("|")}`),
       extractionConfidence: confidence,
       extractionStatus: confidence >= 0.8 ? "ready" : "needs_review",
-      metadata: { referencesVisual, sourceDocumentHash: documentHash },
+      metadata: { referencesVisual, missingContext, corruptedText, sharedContext: Boolean(context), parserVersion: 2, sourceDocumentHash: documentHash },
     });
   });
   return items;

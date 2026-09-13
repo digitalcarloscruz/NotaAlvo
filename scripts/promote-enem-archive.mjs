@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { canRepairStatement } from "./lib/enem-promotion.mjs";
 
 const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/$/, "");
 const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -67,23 +68,41 @@ async function main() {
     rest("profiles?select=id,account_role&account_role=in.(admin,reviewer)&order=created_at.asc&limit=1"),
     rest("question_axes?select=id,name"),
     rest("topics?select=id,stable_code,name"),
-    all("questions?select=id,content_hash"),
-    all("enem_archive_items?select=id,exam_id,exam_year,exam_day,item_number,axis,source_page,statement,options,correct_option,raw_text,content_hash,extraction_confidence,source_document:enem_archive_documents!source_document_id(file_name,official_page_url)&extraction_status=eq.ready&correct_option=not.is.null&order=exam_year.desc,item_number.asc"),
+    all("questions?select=id,content_hash,provenance,options,correct_option"),
+    all("enem_archive_items?select=id,exam_id,exam_year,exam_day,item_number,axis,source_page,extraction_status,statement,options,correct_option,raw_text,content_hash,extraction_confidence,metadata,source_document:enem_archive_documents!source_document_id(file_name,official_page_url,official_download_url)&extraction_status=eq.ready&metadata->>parserVersion=eq.2&correct_option=not.is.null&order=exam_year.desc,item_number.asc"),
   ]);
   const reviewerId = reviewers[0]?.id;
   if (!reviewerId) throw new Error("Nenhum administrador/revisor disponível para responsabilizar a promoção automatizada.");
   const axisByName = new Map(axes.map((axis) => [axis.name, axis.id]));
   const topicByCode = new Map(topics.map((topic) => [topic.stable_code, topic]));
   const questionByHash = new Map(existing.map((question) => [question.content_hash, question.id]));
+  const existingByArchive = new Map(existing.map(question => [question.provenance?.archiveItemId || question.id, question]));
   const now = new Date().toISOString();
   const promoted = items.map((item) => {
-    const existingId = questionByHash.get(item.content_hash);
+    const archived = existingByArchive.get(item.id);
+    const existingId = archived?.id || questionByHash.get(item.content_hash);
     const questionId = existingId || item.id;
     const topic = topicByCode.get(topicCode(item));
     if (!axisByName.has(axisName(item)) || !topic) throw new Error(`Taxonomia ausente para ${axisName(item)}/${topicCode(item)}`);
-    return { item, questionId, topic, isNew: !existingId };
+    const repairable = canRepairStatement(archived, item);
+    return { item, questionId, topic, isNew: !existingId, repairable,
+      // Existing evidence refers to the original options. Changed items require
+      // editorial review instead of replacing a question students already answered.
+      changed: Boolean(archived && archived.content_hash !== item.content_hash) };
   });
 
+  for (const entry of promoted.filter(entry => entry.changed && entry.repairable)) {
+    await rest(`questions?id=eq.${entry.questionId}&provenance->>validationMethod=eq.automated_official_extraction`, {
+      method: "PATCH", body: JSON.stringify({ statement: entry.item.statement, content_hash: entry.item.content_hash,
+        validation_status: "validated", validation_notes: "Texto reprocessado com contexto. Alternativas e índice do gabarito preservados; revisão estrutural v2.", updated_at: now }),
+    });
+  }
+  for (const entry of promoted.filter(entry => entry.changed && !entry.repairable)) {
+    await rest(`questions?id=eq.${entry.questionId}&provenance->>validationMethod=eq.automated_official_extraction`, {
+      method: "PATCH", body: JSON.stringify({ validation_status: "pending", validation_notes: "Extração atualizada difere da versão publicada. Conferir o item no acervo e preservar a correspondência das alternativas antes de republicar.", updated_at: now }),
+    });
+  }
+  const unchanged = promoted.filter(entry => !entry.changed || entry.repairable);
   await upsert("questions", promoted.filter((entry) => entry.isNew).map(({ item, questionId, topic }) => ({
     id: questionId,
     exam_id: item.exam_id,
@@ -112,18 +131,19 @@ async function main() {
       officialQuestion: true,
       validationMethod: "automated_official_extraction",
       extractionConfidence: Number(item.extraction_confidence),
+      parserVersion: item.metadata?.parserVersion ?? 1,
       thematicClassification: "heuristic-v1",
     },
   })), "content_hash", 100);
 
-  await upsert("question_options", promoted.flatMap(({ item, questionId }) => item.options.map((content, optionIndex) => ({
+  await upsert("question_options", unchanged.flatMap(({ item, questionId }) => item.options.map((content, optionIndex) => ({
     question_id: questionId,
     option_index: optionIndex,
     label: String.fromCharCode(65 + optionIndex),
     content,
   }))), "question_id,option_index", 300);
 
-  await upsert("question_topics", promoted.map(({ questionId, topic }) => ({
+  await upsert("question_topics", unchanged.map(({ questionId, topic }) => ({
     question_id: questionId,
     topic_id: topic.id,
     relevance: 1,
@@ -132,18 +152,18 @@ async function main() {
     classified_by: reviewerId,
   })), "question_id,topic_id", 300);
 
-  await upsert("question_sources", promoted.map(({ item, questionId }) => ({
+  await upsert("question_sources", unchanged.map(({ item, questionId }) => ({
     question_id: questionId,
     source_type: "official_exam",
     source_name: `INEP — ${item.source_document?.file_name || `ENEM ${item.exam_year}`}`,
-    source_url: item.source_document?.official_page_url || "https://riep.inep.gov.br/",
+    source_url: item.source_document?.official_download_url || item.source_document?.official_page_url || "https://riep.inep.gov.br/",
     authorization_reference: "Caderno e gabarito oficiais registrados no Repositório Institucional do Inep",
     source_page: item.source_page,
     official: true,
     metadata: { archiveItemId: item.id, examYear: item.exam_year, examDay: item.exam_day, itemNumber: item.item_number },
   })), "question_id,source_type,source_name", 200);
 
-  console.log(JSON.stringify({ archiveReady: items.length, newQuestions: promoted.filter((entry) => entry.isNew).length, linkedExisting: promoted.filter((entry) => !entry.isNew).length }));
+  console.log(JSON.stringify({ archiveReady: items.length, newQuestions: promoted.filter((entry) => entry.isNew).length, linkedExisting: promoted.filter((entry) => !entry.isNew).length, repairedStatements: promoted.filter(entry => entry.changed && entry.repairable).length, changedForReview: promoted.filter(entry => entry.changed && !entry.repairable).length }));
 }
 
 main().catch((error) => {

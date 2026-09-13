@@ -35,3 +35,38 @@ describe("preparação do acervo ENEM", () => {
     expect(chunks[0]).toMatchObject({ pageNumber: 3, chunkIndex: 0 });
   });
 });
+
+it("preserva texto compartilhado e não o anexa à alternativa anterior", () => {
+  const options = "\nA um\nB dois\nC três\nD quatro\nE cinco";
+  const pages = [`QUESTÃO 05\nUm enunciado independente suficientemente longo.${options}\nTexto para as questões 6 e 7:\nUma comunidade enfrenta barreiras educacionais.\nQUESTÃO 06\nSegundo o texto, qual problema afeta a comunidade?${options}\nQUESTÃO 07\nConsiderando o texto anterior, qual ação ajuda a comunidade?${options}`];
+  const items = parseQuestions(pages, { year: 2024, day: 1, answers: new Map([["6:common", "A"], ["7:common", "B"]]), documentHash: "test" });
+  expect(items[0].options[4]).toBe("cinco");
+  for (const item of items.slice(1)) {
+    expect(item.statement).toContain("Uma comunidade enfrenta barreiras educacionais.");
+    expect(item.extractionStatus).toBe("ready");
+  }
+});
+
+it("encaminha contexto ausente e conteúdo visual para revisão", () => {
+  for (const prompt of ["Considerando o texto anterior, qual é a conclusão adequada?", "O gráfico apresenta os resultados da pesquisa realizada."]) {
+    const [item] = parseQuestions([`QUESTÃO 06\n${prompt}\nA um\nB dois\nC três\nD quatro\nE cinco`], { year: 2024, day: 1, answers: new Map([["6:common", "A"]]), documentHash: "test" });
+    expect(item.extractionStatus).toBe("needs_review");
+  }
+});
+
+it("does not publish corrupted font extraction or leak page markers", () => {
+  const [item] = parseQuestions(["QUESTÃO 06\nUm enunciado com caractere \u0003 corrompido e texto suficiente.\nA um\nB dois", "C três\nD quatro\nE cinco"], { year: 2024, day: 1, answers: new Map([["6:common", "A"]]), documentHash: "test" });
+  expect(item.extractionStatus).toBe("needs_review");
+  expect(item.options.join(" ")).not.toContain("__ENEM_PAGE_");
+});
+
+import { canRepairStatement } from "../scripts/lib/enem-promotion.mjs";
+it("repairs only automatic statements with unchanged options and answer indices", () => {
+  const existing = { provenance: { validationMethod: "automated_official_extraction" }, options: ["uma opção", "outra opção"], correct_option: 1 };
+  const item = { metadata: { parserVersion: 2 }, extraction_status: "ready", options: ["uma\n opção", "outra opção"], correct_option: 1 };
+  expect(canRepairStatement(existing, item)).toBe(true);
+  expect(canRepairStatement(existing, { ...item, options: ["nova opção", "outra opção"] })).toBe(false);
+  expect(canRepairStatement(existing, { ...item, correct_option: 0 })).toBe(false);
+  expect(canRepairStatement(existing, { ...item, extraction_status: "needs_review" })).toBe(false);
+  expect(canRepairStatement({ ...existing, provenance: {} }, item)).toBe(false);
+});

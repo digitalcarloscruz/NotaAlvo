@@ -8,7 +8,7 @@ export function EnemLandingQuiz() {
   const router = useRouter();
   const [answers, setAnswers] = useState<(number | null)[]>(() => landingQuestions.map(() => null));
   const [index, setIndex] = useState(0);
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(true);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const title = useRef<HTMLHeadingElement>(null);

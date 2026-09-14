@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { RotaProvider } from "@/components/providers/rota-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
@@ -35,6 +36,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AuthProvider>
           <RotaProvider>{children}</RotaProvider>
         </AuthProvider>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-BN6H7FXTMQ"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-BN6H7FXTMQ');`}
+        </Script>
       </body>
     </html>
   );

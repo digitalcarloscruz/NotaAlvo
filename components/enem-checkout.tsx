@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { QUIZ_STORAGE_KEY } from "@/lib/enem/landing-quiz";
 
-export function EnemCheckout({ enabled, autoStart = false }: { enabled: boolean; autoStart?: boolean }) {
+export function EnemCheckout({ enabled, autoStart = false, ctaLabel = "Continuar para matrícula →", showPrice = true }: { enabled: boolean; autoStart?: boolean; ctaLabel?: string; showPrice?: boolean }) {
   const router = useRouter();
   const { status: authStatus, user, signOut } = useAuth();
   const started = useRef(false);
@@ -33,7 +33,7 @@ export function EnemCheckout({ enabled, autoStart = false }: { enabled: boolean;
           const data = await response.json();
           if (controller.signal.aborted) return;
           setPaymentStatus(data.status);
-          if (["paid", "revoked", "expired", "none"].includes(data.status)) return;
+          if (["paid", "revoked", "expired", "none", "checkout_unavailable"].includes(data.status)) return;
         }
       } catch { /* A failed check never confirms payment. */ }
       if (!controller.signal.aborted && ++count < 20) timer = setTimeout(check, 5000);
@@ -67,5 +67,5 @@ export function EnemCheckout({ enabled, autoStart = false }: { enabled: boolean;
   }
   if (paymentStatus === "paid") return <div><p role="status">Pagamento confirmado! Seu ENEM Express está liberado.</p><a className="enem-button" href="/app">Acessar meu ENEM Express →</a></div>;
   if (paymentStatus === "revoked") return <p role="status">O acesso deste pedido foi suspenso por estorno ou contestação. Entre em contato com o suporte.</p>;
-  return <div>{paymentStatus === "pending" && <p role="status">Aguardando a confirmação do pagamento. Se você já pagou, aguarde a atualização.</p>}<p><strong>R$ 97,00</strong> • pagamento único</p><p className="enem-small">Pagamento pelo Asaas. Sem assinatura recorrente. {autoStart ? "O pagamento ficará vinculado à sua conta." : "Crie sua conta ou entre antes de pagar para vincular o acesso à sua conta."}</p><button className="enem-button" disabled={!enabled || busy || authStatus === "loading" || authStatus === "unavailable"} onClick={checkout}>{busy ? "Abrindo pagamento…" : enabled ? "Continuar para matrícula →" : "Matrículas em breve"}</button>{message && <p role="alert">{message}</p>}</div>;
+  return <div>{paymentStatus === "checkout_unavailable" && <p role="status">O link de pagamento ainda não está disponível. Seu pedido foi registrado; entre em contato com o suporte para continuar.</p>}{paymentStatus === "pending" && <p role="status">Aguardando a confirmação do pagamento. Se você já pagou, aguarde a atualização.</p>}{showPrice && <p><strong>R$ 97,00</strong> • pagamento único</p>}<p className="enem-small">Pagamento pelo Asaas. Sem assinatura recorrente. {autoStart ? "O pagamento ficará vinculado à sua conta." : "Crie sua conta ou entre antes de pagar para vincular o acesso à sua conta."}</p><button className="enem-button" disabled={!enabled || busy || authStatus === "loading" || authStatus === "unavailable"} onClick={checkout}>{busy ? "Abrindo pagamento…" : enabled ? ctaLabel : "Matrículas em breve"}</button>{message && <p role="alert">{message}</p>}</div>;
 }

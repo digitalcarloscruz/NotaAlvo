@@ -240,7 +240,7 @@ body { min-width: 320px; }
 .enem-bottom-cta p { color: #5a695f; line-height: 1.6; }
 .enem-bottom-cta small { display: block; margin-top: 20px; color: #647164; line-height: 1.6; }
 .enem-footer { max-width: 1240px; margin: auto; border-top: 1px solid #dfe5dc; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; font-size: 12px; }
-.enem-result-main { max-width: 1080px; margin: auto; padding: 40px 32px 80px; }
+.enem-result-main { max-width: 1080px; margin: auto; padding: 40px 32px 80px; display: grid; gap: 28px; }
 .enem-result-card { background: #fff; border: 1px solid #e0e7da; border-radius: 24px; padding: 40px; }
 .enem-result-card h1 { max-width: 760px; font: 800 clamp(30px, 4vw, 44px)/1.15 Manrope, sans-serif; letter-spacing: -1.4px; }
 .enem-result-card > p { line-height: 1.7; color: #5a695f; }
@@ -249,9 +249,16 @@ body { min-width: 320px; }
 .enem-result-priorities ul { display: flex; flex-wrap: wrap; gap: 12px; list-style: none; padding: 0; margin-bottom: 0; }
 .enem-result-priorities li { background: white; border: 1px solid #dce3d9; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
 .enem-result-next { padding-block: 48px; }
-.enem-course-preview { padding: 32px; border: 1px solid #dce3d9; border-radius: 20px; background: #edf3e3; }
+.enem-course-preview { padding: 40px; border: 1px solid #dce3d9; border-radius: 24px; background: #edf3e3; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .7fr); gap: 48px; align-items: start; }
 .enem-course-preview h2 { font: 800 28px/1.2 Manrope, sans-serif; }
 .enem-course-preview p { line-height: 1.7; }
+.enem-course-copy > p, .enem-course-copy li { color: #53645a; line-height: 1.7; }
+.enem-enrollment-card { position: sticky; top: 24px; padding: 30px; border-radius: 18px; background: #173c2c; color: #fff; box-shadow: 0 18px 48px #173c2c1c; }
+.enem-enrollment-card .enem-kicker { color: #d8ef86; }
+.enem-enrollment-card > p:not(.enem-enrollment-price), .enem-enrollment-card .enem-small { color: #c6d4cb; font-size: 13px; }
+.enem-enrollment-price { margin: 22px 0 14px; font: 800 58px/1 Manrope, sans-serif; letter-spacing: -3px; }
+.enem-enrollment-price small { font-size: 20px; letter-spacing: -1px; }
+.enem-enrollment-card .enem-button { width: 100%; margin: 10px 0 8px; text-align: center; }
 .enem-back-link { display: inline-block; margin-top: 28px; color: #173c2c; }
 
 /* Home comercial e experiência focada do quiz. */
@@ -358,7 +365,8 @@ body { min-width: 320px; }
   .enem-result-main { padding: 24px 20px 48px; }
   .enem-result-card { padding: 24px; }
   .enem-result-priorities { padding: 18px; }
-  .enem-course-preview { padding: 24px; }
+  .enem-course-preview { padding: 24px; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .enem-enrollment-card { position: static; padding: 26px 22px; }
   .home-nav-actions .enem-login { display: none; }
   .home-hero { grid-template-columns: 1fr; padding: 48px 20px 72px; }
   .home-hero h1 { font-size: clamp(40px, 11vw, 58px); letter-spacing: -2px; }

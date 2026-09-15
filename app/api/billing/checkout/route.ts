@@ -18,6 +18,8 @@ export async function POST(request: Request) {
   if (!session || !admin) return NextResponse.json({ error: "Pagamento indisponível." }, { status: 503 });
   const { data: auth } = await session.auth.getUser();
   if (!auth.user) return NextResponse.json({ error: "Entre ou crie sua conta para continuar." }, { status: 401 });
+  const accountName = typeof auth.user.user_metadata.full_name === "string" ? auth.user.user_metadata.full_name.trim() : "";
+  const customerData = accountName && auth.user.email ? { name: accountName, email: auth.user.email } : undefined;
   const { data: paid, error: paidError } = await admin.from("asaas_orders").select("id").eq("user_id", auth.user.id).eq("product_name", product).eq("status", "paid").limit(1).maybeSingle();
   if (paidError) return NextResponse.json({ error: "Não foi possível verificar seus pedidos." }, { status: 503 });
   if (paid) return NextResponse.json({ url: "/app" });
@@ -35,7 +37,14 @@ export async function POST(request: Request) {
   }
   if (error) return NextResponse.json({ error: "Não foi possível registrar o pedido." }, { status: 500 });
   try {
-    const checkout = await createAsaasCheckout({ orderId: id, name: product, description: `${ENEM_EXPRESS.description} Acesso até ${ENEM_EXPRESS.accessEndLabel}.`, amountCents: ENEM_EXPRESS.amountCents, returnUrl: `${origin}/resultadodoquiz` });
+    const checkout = await createAsaasCheckout({
+      orderId: id,
+      name: "Nota Alvo — ENEM Express 2026",
+      description: `Plano de estudos, questões, simulados, caderno de erros, Mentor com IA e laboratório de redação. Pagamento único, com acesso até ${ENEM_EXPRESS.accessEndLabel}.`,
+      amountCents: ENEM_EXPRESS.amountCents,
+      returnUrl: `${origin}/resultadodoquiz`,
+      customerData,
+    });
     const { error: saveError } = await admin.from("asaas_orders").update({ checkout_id: checkout.id, checkout_url: checkout.link }).eq("id", id);
     if (saveError) throw new Error("Checkout persistence failed");
     return NextResponse.json({ url: checkout.link });

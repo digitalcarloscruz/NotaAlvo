@@ -14,6 +14,10 @@ export const checkoutInput = z.object({
   description: z.string().trim().min(1).max(1000),
   amountCents: z.number().int().positive().max(100_000_000),
   returnUrl: z.string().url().refine(value => new URL(value).protocol === "https:"),
+  customerData: z.object({
+    name: z.string().trim().min(2).max(120),
+    email: z.string().trim().email().max(254),
+  }).optional(),
 });
 
 export async function createAsaasCheckout(input: z.infer<typeof checkoutInput>) {
@@ -36,6 +40,7 @@ export async function createAsaasCheckout(input: z.infer<typeof checkoutInput>) 
       externalReference: order.orderId,
       callback: { successUrl: callback("returned"), cancelUrl: callback("canceled"), expiredUrl: callback("expired") },
       items: [{ name: order.name, description: order.description, quantity: 1, value: order.amountCents / 100 }],
+      ...(order.customerData ? { customerData: order.customerData } : {}),
     }),
   });
   if (!response.ok) throw new Error(`Asaas checkout failed (${response.status})`);

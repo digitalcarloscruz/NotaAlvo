@@ -6,7 +6,11 @@ type Funnel = {
   days: number;
   steps: { quizViews: number; quizStarted: number; quizCompleted: number; contacts: number; resultViews: number; checkoutClicks: number; signups: number; checkoutsCreated: number; paid: number };
   revenueCents: number;
-  recentLeads: Array<{ name: string; email: string; createdAt: string; correct: number | null }>;
+  averageCorrect: number | null;
+  distribution: number[];
+  bands: Array<{ label: string; leads: number; checkouts: number; paid: number }>;
+  areas: Array<{ area: string; rate: number }>;
+  leads: Array<{ name: string; email: string; phone: string | null; createdAt: string; correct: number | null; total: number; areas: Array<{ area: string; correct: number; total: number }>; stage: "lead" | "checkout" | "paid" }>;
 };
 
 const periods = [[1, "24 horas"], [7, "7 dias"], [30, "30 dias"], [90, "90 dias"]] as const;
@@ -57,8 +61,16 @@ export function FunnelDashboard() {
       <article className="surface"><span>Abriu quiz → pagou</span><strong>{percent(s.paid, s.quizViews)}</strong></article>
       <article className="surface"><span>Receita confirmada</span><strong>{(data.revenueCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></article>
     </section>
-    <section className="surface operations-log"><div className="panel-head"><div><h3>Últimos leads do quiz</h3><p>Quem concluiu o quiz e deixou contato</p></div></div>
-      {data.recentLeads.length === 0 ? <div className="empty-state">Nenhum lead no período.</div> : data.recentLeads.map((lead) => <div className="operations-row" key={`${lead.email}-${lead.createdAt}`}><span><b>{lead.name}</b><small>{lead.email}</small></span><strong>{lead.correct === null ? "—" : `${lead.correct} acertos`}</strong><time>{new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(lead.createdAt))}</time></div>)}
+    <section className="surface"><div className="panel-head"><div><h3>Dificuldade do quiz</h3><p>Média de {data.averageCorrect ?? "—"} acertos em 12 questões. Se a maioria acerta pouco, o quiz pode estar desanimando; se acerta muito, a pessoa pode não sentir necessidade de comprar.</p></div></div>
+      <div className="funnel-dist">{data.distribution.map((value, correct) => <div key={correct}><span style={{ height: `${Math.max(3, value / Math.max(1, ...data.distribution) * 100)}%` }} title={`${value} leads`} /><b>{value}</b><small>{correct}</small></div>)}</div>
+      <p className="enem-small">Leads por número de acertos.</p>
+      <div className="operations-facts">{data.areas.map((area) => <span key={area.area}><small>Taxa de acerto — {area.area}</small><b>{area.rate}%</b></span>)}</div>
+    </section>
+    <section className="surface"><div className="panel-head"><div><h3>Conversão por desempenho</h3><p>Quem acerta mais ou menos compra mais?</p></div></div>
+      <div className="operations-plans">{data.bands.map((band) => <span key={band.label}><b>{band.label}</b><strong>{band.leads} leads · {band.checkouts} checkouts · {band.paid} pagos ({percent(band.paid, band.leads)})</strong></span>)}</div>
+    </section>
+    <section className="surface operations-log"><div className="panel-head"><div><h3>Leads do quiz</h3><p>Nome, contato, acertos e situação da compra ({data.leads.length} mais recentes)</p></div></div>
+      {data.leads.length === 0 ? <div className="empty-state">Nenhum lead no período.</div> : <div className="funnel-table"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Acertos</th><th>Por área</th><th>Situação</th><th>Data</th></tr></thead><tbody>{data.leads.map((lead) => <tr key={`${lead.email}-${lead.createdAt}`}><td>{lead.name}</td><td>{lead.email}</td><td>{lead.phone ?? "—"}</td><td><b>{lead.correct === null ? "—" : `${lead.correct}/${lead.total}`}</b></td><td>{lead.areas.map((area) => `${area.area.slice(0, 3)} ${area.correct}/${area.total}`).join(" · ")}</td><td>{lead.stage === "paid" ? "Pagou" : lead.stage === "checkout" ? "Abriu checkout" : "Só o quiz"}</td><td>{new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(lead.createdAt))}</td></tr>)}</tbody></table></div>}
     </section>
     <p className="enem-small">Eventos de navegação (abriu, iniciou, concluiu, clicou) passam a ser contados a partir da publicação desta versão. Contatos, cadastros e pagamentos usam o histórico existente.</p>
   </div>;

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 import { getQuizQuestions, evaluateQuiz, parseQuizAttempt, QUIZ_STORAGE_KEY, type QuizAttempt } from "@/lib/enem/landing-quiz";
 import { QUIZ_CONTACT_KEY, quizContactSchema } from "@/lib/enem/quiz-contact";
 
+import { trackFunnel } from "@/lib/analytics/track";
 import { quizMessage } from "@/lib/enem/quiz-message";
 
 type Result = NonNullable<ReturnType<typeof evaluateQuiz>>;
@@ -36,7 +37,7 @@ export function EnemQuizResult({ children }: { children: ReactNode }) {
     });
     return () => cancelAnimationFrame(frame);
   }, []);
-  useEffect(() => { if (result) heading.current?.focus(); }, [result]);
+  useEffect(() => { if (result) { heading.current?.focus(); trackFunnel("result_view"); } }, [result]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const contact = quizContactSchema.safeParse({ name, email, phone });

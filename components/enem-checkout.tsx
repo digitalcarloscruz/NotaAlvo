@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
+import { trackFunnel } from "@/lib/analytics/track";
 import { QUIZ_STORAGE_KEY } from "@/lib/enem/landing-quiz";
 
 export function EnemCheckout({ enabled, autoStart = false, ctaLabel = "Continuar para matrícula →", showPrice = true }: { enabled: boolean; autoStart?: boolean; ctaLabel?: string; showPrice?: boolean }) {
@@ -42,6 +43,7 @@ export function EnemCheckout({ enabled, autoStart = false, ctaLabel = "Continuar
     return () => { controller.abort(); clearTimeout(timer); };
   }, [authStatus, user?.id]);
   async function checkout() {
+    trackFunnel(autoStart ? "enrollment_view" : "checkout_click");
     if (authStatus === "loading" || authStatus === "unavailable") return;
     if (authStatus !== "authenticated") {
       router.push("/entrar?mode=signup&next=%2Fmatricula");

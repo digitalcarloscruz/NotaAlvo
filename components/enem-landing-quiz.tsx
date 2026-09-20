@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { trackFunnel } from "@/lib/analytics/track";
 import { landingQuestions, parseQuizAttempt, QUIZ_STORAGE_KEY, QUIZ_VERSION } from "@/lib/enem/landing-quiz";
 
 export function EnemLandingQuiz() {
@@ -27,8 +28,10 @@ export function EnemLandingQuiz() {
     return () => cancelAnimationFrame(frame);
   }, []);
   useEffect(() => { if (started) title.current?.focus(); }, [index, started]);
+  useEffect(() => { trackFunnel("quiz_view"); }, []);
 
   function select(answer: number) {
+    trackFunnel("quiz_started");
     const next = answers.map((value, i) => i === index ? answer : value);
     setAnswers(next);
     try {
@@ -45,6 +48,7 @@ export function EnemLandingQuiz() {
     if (missing !== -1) { setIndex(missing); return; }
     try {
       sessionStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify({ version: QUIZ_VERSION, answers }));
+      trackFunnel("quiz_completed");
       router.push("/resultadodoquiz");
     } catch { setStorageError(true); }
   }

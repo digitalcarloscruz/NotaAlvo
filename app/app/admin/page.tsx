@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = { title: "Administração" };
 
 const areas = [
+  { href: "/app/admin/funil", eyebrow: "CONVERSÃO", title: "Funil de vendas", description: "Veja quantas pessoas iniciam o quiz, se cadastram e pagam para descobrir onde a conversão trava." },
   { href: "/app/admin/piloto", eyebrow: "PILOTO ENEM", title: "Coorte e participantes", description: "Crie a turma fechada, convide as 10 pessoas e acompanhe consentimento, atividade e feedback." },
   { href: "/app/admin/questoes", eyebrow: "CONTEÚDO", title: "Banco de questões", description: "Prepare questões autorais, registre fontes e faça a revisão humana antes da publicação." },
   { href: "/app/admin/editais", eyebrow: "CURADORIA", title: "Revisão de editais", description: "Valide extrações e impeça que conteúdo não revisado altere os planos dos candidatos." },

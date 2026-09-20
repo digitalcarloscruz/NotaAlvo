@@ -9,7 +9,7 @@ export function EnemLandingQuiz() {
   const router = useRouter();
   const [answers, setAnswers] = useState<(number | null)[]>(() => landingQuestions.map(() => null));
   const [index, setIndex] = useState(0);
-  const [started, setStarted] = useState(true);
+  const [started, setStarted] = useState(false);
   const [ready, setReady] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const title = useRef<HTMLHeadingElement>(null);
@@ -21,6 +21,7 @@ export function EnemLandingQuiz() {
           setAnswers(saved.answers);
           const next = saved.answers.findIndex(answer => answer === null);
           setIndex(next === -1 ? 0 : next);
+          if (saved.answers.some(answer => answer !== null)) setStarted(true);
         }
       } catch { /* Uma tentativa inválida não impede um novo quiz. */ }
       setReady(true);
@@ -55,17 +56,20 @@ export function EnemLandingQuiz() {
 
   return <section className="enem-quiz" id="quiz" aria-label="Quiz diagnóstico ENEM">
     {!started ? <div className="enem-quiz-intro">
-      <span className="enem-kicker">SEU PONTO DE PARTIDA</span>
-      <h2>Desafio ENEM:<br />até onde você vai?</h2>
-      <p>Responda 12 questões de Linguagens, Matemática, Humanas e Natureza. A seleção é exigente, com níveis médio, difícil e muito difícil definidos editorialmente. Escolha uma alternativa por questão, sem consultar o gabarito. Não é uma estimativa da sua nota no ENEM.</p>
-      <ul><li>Sem cadastro para responder</li><li>Você pode voltar e revisar suas escolhas</li><li>Questões oficiais, com cinco alternativas</li></ul>
-      <p className="enem-quiz-disclosure">Ao concluir, informe seu nome e e-mail para ver gratuitamente seus acertos, erros, assuntos para revisar e até duas resoluções comentadas. Telefone opcional. Depois, você poderá conhecer o ENEM Express, sem obrigação de compra.</p>
-      <button type="button" className="enem-button" disabled={!ready} onClick={() => setStarted(true)}>{!ready ? "Preparando quiz…" : answered > 0 ? "Retomar meu quiz →" : "Começar meu quiz →"}</button>
+      <span className="enem-kicker">SEU DIAGNÓSTICO GRATUITO</span>
+      <h2>Descubra o que revisar antes da prova.</h2>
+      <ul className="enem-quiz-steps">
+        <li><b>1</b><span>Responda 12 questões oficiais de Linguagens, Matemática, Humanas e Natureza.</span></li>
+        <li><b>2</b><span>Veja seus acertos e erros em cada área e os assuntos que mais pedem revisão.</span></li>
+        <li><b>3</b><span>Receba até duas resoluções comentadas para entender onde errou.</span></li>
+      </ul>
+      <button type="button" className="enem-button" disabled={!ready} onClick={() => setStarted(true)}>{!ready ? "Preparando quiz…" : answered > 0 ? "Retomar meu quiz →" : "Começar agora →"}</button>
+      <p className="enem-quiz-disclosure">É gratuito e não pede cartão. Você responde sem cadastro; ao final, informe nome e e-mail para ver o resultado. O quiz é uma sondagem inicial e não estima sua nota no ENEM.</p>
       {answered > 0 && <p className="enem-small">{answered} de 12 respostas salvas nesta aba.</p>}
     </div> : <div>
       <div className="enem-quiz-top"><span>{question.area}</span><span>Questão {index + 1} de {landingQuestions.length}</span></div>
       <progress value={answered} max={landingQuestions.length} aria-label={`${answered} de ${landingQuestions.length} questões respondidas`} />
-      {question.source && <p className="enem-small">ENEM {question.source.year} • {question.source.application} • caderno {question.source.booklet} • questão {question.source.number} • nível editorial: {question.difficulty}. <a href={question.source.url} target="_blank" rel="noopener noreferrer">Fonte: Inep</a></p>}
+      {question.source && <p className="enem-small enem-question-source">ENEM {question.source.year} • {question.source.application} • caderno {question.source.booklet} • questão {question.source.number} • nível editorial: {question.difficulty}. <a href={question.source.url} target="_blank" rel="noopener noreferrer">Fonte: Inep</a></p>}
       <h2 ref={title} tabIndex={-1} className="enem-question-title">Leia e escolha uma alternativa.</h2>
       <p className="enem-question-text">{question.text}</p>
       <fieldset className="enem-options"><legend className="enem-sr-only">Selecione uma alternativa</legend>{question.options.map((option, i) => <label className={`enem-option ${answers[index] === i ? "is-selected" : ""}`} key={option}>

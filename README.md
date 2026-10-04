@@ -156,3 +156,22 @@ Além dos quatro eventos `CHECKOUT_*`, selecionar **PAYMENT_REFUNDED**, **PAYMEN
 O login, a recuperação e os callbacks agora permanecem no domínio de origem. No Supabase, autorizar `https://www.notaalvo.com.br/**` e `https://app.notaalvo.com.br/**` nas Redirect URLs. As sessões permanecem separadas por host: ao acessar a área do aluno pode ser necessário entrar novamente com a mesma conta. O resultado consulta `/api/billing/status`, autenticado, sem confiar nos parâmetros de retorno do checkout.
 
 Homologar: quiz → cadastro/login → checkout de R$ 97 → confirmação via webhook → plano ativo; repetir evento; enviar estorno associado → pedido revogado e plano cancelado; confirmar que um CHECKOUT_PAID atrasado não restabelece acesso. Testar também expiração, token inválido e indisponibilidade do banco. Usar sandbox para pagamentos simulados: não forjar confirmação de compra em produção. Configurações remotas, cobrança real e deploy não são executados pelos testes locais.
+
+
+## Retorno ao Asaas — 07/09/2026
+
+Novas compras e a consulta de pedidos voltaram ao Asaas. A integração Stripe permanece no código e no banco para preservar o histórico, sem ser usada pelo checkout. O webhook Stripe (identificador omitido) foi desativado na conta; não havia pedidos Stripe. As vendas dependem de `ASAAS_CHECKOUT_ENABLED`; homologar o fluxo Asaas antes de ativá-las.
+
+
+## Identificação após o quiz
+
+Aplicar `supabase/migrations/20260907180000_enem_quiz_contacts.sql` antes de publicar o novo fluxo de resultado. O quiz continua aberto; ao concluir, nome e e-mail são obrigatórios e telefone é opcional. A API `/api/quiz/contact` valida e recalcula o resultado antes de salvar na tabela privada `enem_quiz_contacts`. Somente o servidor tem acesso à tabela. O formulário não cria conta nem representa consentimento de marketing.
+
+O resultado e a oferta aparecem após confirmação da gravação; indisponibilidade do banco mantém o formulário com opção de tentar novamente. A sessão da aba conserva a identificação para a mesma tentativa e preenche nome/e-mail na etapa de autenticação. Esses dados locais não concedem acesso pago. A oferta informa R$ 97 em pagamento único, sem desconto baseado em preço de referência não comprovado e sem promessa de entrega semanal ainda não confirmada.
+
+
+## Continuidade do quiz e revisões adaptativas
+
+Aplicar `supabase/migrations/20260907190000_review_progress_guard.sql` antes de publicar os ajustes de estudo. A função mantém a assinatura existente e exige uma resposta correta persistida no ciclo de revisão para avançar. Reenvios não avançam intervalos adicionais.
+
+O quiz é recuperado somente para conta com e-mail confirmado e importado uma vez no estado do aluno. O onboarding preserva as evidências e direciona a primeira semana ao ENEM. O acervo oficial é selecionado por área e exclui as 500 respostas mais recentes; explicações ainda não comentadas pela curadoria permanecem identificadas como tal. A ajuda do mentor é opcional e não substitui o gabarito oficial.

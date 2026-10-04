@@ -20,6 +20,13 @@ export const checkoutInput = z.object({
   }).optional(),
 });
 
+export class AsaasCheckoutError extends Error {
+  constructor(readonly httpStatus: number, readonly codes: string[]) {
+    super(`Asaas checkout failed (${httpStatus})`);
+    this.name = "AsaasCheckoutError";
+  }
+}
+
 export async function createAsaasCheckout(input: z.infer<typeof checkoutInput>) {
   const order = checkoutInput.parse(input);
   const config = configSchema.parse({ environment: process.env.ASAAS_ENVIRONMENT, key: process.env.ASAAS_API_KEY });
@@ -43,7 +50,15 @@ export async function createAsaasCheckout(input: z.infer<typeof checkoutInput>) 
       ...(order.customerData ? { customerData: order.customerData } : {}),
     }),
   });
-  if (!response.ok) throw new Error(`Asaas checkout failed (${response.status})`);
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    // Log only known machine codes. Provider descriptions may contain personal data.
+    const allowed = new Set(["invalid_object", "invalid_value", "invalid_action", "invalid_access_token", "access_token_not_found", "access_denied", "unauthorized", "invalid_customer", "invalid_billing_type"]);
+    const codes = Array.isArray(body?.errors)
+      ? body.errors.slice(0, 5).map((error: { code?: unknown }) => typeof error?.code === "string" && allowed.has(error.code) ? error.code : "unclassified")
+      : [];
+    throw new AsaasCheckoutError(response.status, codes);
+  }
   const result = z.object({ id: z.string().min(1), link: z.string().url().nullish() }).parse(await response.json());
   const url = new URL(result.link ?? `https://${config.environment === "production" ? "asaas.com" : "sandbox.asaas.com"}/checkoutSession/show?id=${encodeURIComponent(result.id)}`);
   const host = config.environment === "production" ? "www.asaas.com" : "sandbox.asaas.com";

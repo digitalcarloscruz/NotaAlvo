@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { createAsaasCheckout } from "@/lib/billing/asaas";
+import { AsaasCheckoutError, createAsaasCheckout } from "@/lib/billing/asaas";
 import { ENEM_EXPRESS, isEnemExpressAvailable } from "@/lib/billing/enem-express";
 import { parseQuizAttempt, evaluateQuiz } from "@/lib/enem/landing-quiz";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Já existe um pedido para este quiz. Aguarde a confirmação ou entre em contato com o suporte." }, { status: 409 });
   }
   if (error) return NextResponse.json({ error: "Não foi possível registrar o pedido." }, { status: 500 });
+  let stage = "provider";
   try {
     const checkout = await createAsaasCheckout({
       orderId: id,
@@ -45,10 +46,17 @@ export async function POST(request: Request) {
       returnUrl: `${origin}/resultadodoquiz`,
       customerData,
     });
+    stage = "persistence";
     const { error: saveError } = await admin.from("asaas_orders").update({ checkout_id: checkout.id, checkout_url: checkout.link }).eq("id", id);
     if (saveError) throw new Error("Checkout persistence failed");
     return NextResponse.json({ url: checkout.link });
-  } catch {
+  } catch (error) {
+    console.error("asaas_checkout_failed", {
+      orderId: id, stage,
+      httpStatus: error instanceof AsaasCheckoutError ? error.httpStatus : null,
+      codes: error instanceof AsaasCheckoutError ? error.codes : [],
+      category: error instanceof AsaasCheckoutError ? "provider_rejected" : error instanceof Error && error.name === "ZodError" ? "invalid_configuration_or_response" : "unknown",
+    });
     // Retain the order to avoid double charging after an ambiguous network failure.
     return NextResponse.json({ error: "Não foi possível concluir a abertura do pagamento. Seu pedido foi preservado; procure o suporte antes de tentar novamente." }, { status: 502 });
   }

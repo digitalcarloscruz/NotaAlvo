@@ -22,3 +22,18 @@ it("rejects a checkout link outside the provider", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ id: "session-1", link: "https://asaas.com.attacker.test/" })));
   await expect(createAsaasCheckout(order)).rejects.toThrow("Invalid Asaas checkout URL");
 });
+it("retains safe rejection codes without leaking descriptions and does not retry", async () => {
+  vi.stubEnv("ASAAS_ENVIRONMENT", "production");
+  vi.stubEnv("ASAAS_API_KEY", "secret-test-key");
+  const fetch = vi.fn().mockResolvedValue(Response.json({ errors: [
+    { code: "invalid_object", description: "private@example.com secret-test-key" },
+    { code: "private@example.com", description: "sensitive" },
+  ] }, { status: 400 }));
+  vi.stubGlobal("fetch", fetch);
+  const error = await createAsaasCheckout(order).catch(error => error);
+  expect(error.httpStatus).toBe(400);
+  expect(error.codes).toEqual(["invalid_object", "unclassified"]);
+  expect(JSON.stringify(error)).not.toContain("secret-test-key");
+  expect(JSON.stringify(error)).not.toContain("private@example.com");
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
